@@ -17,3 +17,5 @@ class Graph
     int* get_neighbors(int node_id);
     int num_neighbors(int node_id);
 };
+
+#endif
