@@ -1,4 +1,5 @@
 // Ullman and Yanakakis Shortest Path
+
 #include "uysp.h"
 
 UYSP::UYSP(int a) {
