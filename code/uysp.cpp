@@ -78,19 +78,74 @@ int UYSP::doPrecomputation() {
           }
         }
       }
+      tmp = cur;
+      cur = next;
+      next = tmp;
     }
-
-    tmp = cur;
-    cur = next;
-    next = tmp;
   }
 
   // TODO:
   // Implementing APSP
+  // Just doing floyd warshall for now lol maybe switch to something better
+
+  for (int k = 0; k < rho; k++) {
+    for (int i = 0; i < rho; i++) {
+      for (int j = 0; j < rho; j++) {
+        hop_graph[i][j] = ((hop_graph[i][j] == 0 && i != j) ||
+          hop_graph[i][k] + hop_graph[k][j] < hop_graph[i][j]) ? hop_graph[i][k]
+          + hop_graph[k][j] : hop_graph[i][j];
+      }
+    }
+  }
+
 }
 
 int UYSP::query(int s, int t) {
   // TODO: Do BFS with the in edges
   // Loop over hop nodes to find the minimum
+  int n = g->nnode;
+
+  int *s_dist_to_hop = calloc(rho, sizeof(int));
+  int *t_dist_from_hop = calloc(rho, sizeof(int));
+
+  int bfs_limit = rho * log(n);
+
+  Frontier *cur = (Frontier *) calloc(1, sizeof(Frontier));
+  Frontier *next = (Frontier *) calloc(1, sizeof(Frontier));
+  Frontier *tmp;
+
+  init_frontier_set(cur, n);
+  init_frontier_set(next, n);
+
+  int *visited_set = (int *) calloc(g->nnode, sizeof(int));
+
+  cur->vertices[cur->count] = s;
+  cur->count++;
+
+  for (int depth = 1; depth <= bfs_limit; depth++) {
+    for (int i = 0; i < cur->count; i++) {
+      int v = cur->vertices[i];
+      visited_set[v] = 1;
+      int* neighbors = g->get_neighbors(v);
+      int num_neighbors = g->num_neighbors(v);
+      for (int j = 0; j < num_neighbors; j++) {
+        int neighbor = neighbors[j];
+        if (!visited_set[neighbor]) {
+          if (hop_node_flag[neighbor]) {
+            s_dist_to_hop[hop_node_flag[neighbor]] = depth;
+          }
+          next->vertices[next->count] = neighbor;
+          next->count++;
+        }
+      }
+    }
+    tmp = cur;
+    cur = next;
+    next = tmp;
+  }
+
+  // Fill up t_dist_from_hop
+
+  // Compute final shortest paths
   return s - t;
 }
