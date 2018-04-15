@@ -6,7 +6,7 @@ LDFLAGS= -lm
 DDIR = ./data
 
 CFILES = main.cpp uysp.cpp
-HFILES = main.h uysp.h
+HFILES = main.h uysp.h graph.h
 
 all: crun crun-omp
 
