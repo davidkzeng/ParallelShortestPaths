@@ -1,5 +1,12 @@
 #include <cmath>
+
+#include "uysp.h"
+
 int main() {
+  UYSP spAlgo(3);
+
+  spAlgo.doPrecomputation();
+
   const int size = 256;
   double sinTable[size];
 
