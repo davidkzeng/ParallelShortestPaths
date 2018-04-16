@@ -5,8 +5,8 @@ CFLAGS=-g -O3 -Wall -DDEBUG=$(DEBUG)
 LDFLAGS= -lm
 DDIR = ./data
 
-CFILES = main.cpp uysp.cpp
-HFILES = main.h uysp.h graph.h
+CFILES = main.cpp uysp.cpp graph.cpp util.cpp
+HFILES = main.h uysp.h graph.h util.h
 
 all: crun crun-omp
 
