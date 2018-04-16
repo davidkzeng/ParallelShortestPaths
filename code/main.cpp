@@ -3,7 +3,7 @@
 #include "uysp.h"
 
 int main() {
-  UYSP spAlgo(3);
+  UYSP spAlgo(NULL, 5);
 
   spAlgo.doPrecomputation();
 

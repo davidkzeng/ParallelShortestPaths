@@ -16,6 +16,7 @@ class Graph
   public:
     int nnode;
     int nedge;
+
     int *neighbor;
     int *neighbor_start;
     Graph(FILE *infile);
@@ -26,7 +27,7 @@ class Graph
     bool new_graph(int num_node, int num_edge);
     bool read_graph(FILE *infile);
     void show_graph();
-
+    int get_num_nodes();
 };
 
 #endif
