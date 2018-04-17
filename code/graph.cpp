@@ -27,6 +27,15 @@ int* Graph::get_neighbors(int node_id) {
   return &(neighbor[neighbor_start[node_id]]);
 }
 
+int Graph::num_in_neighbors(int node_id) {
+  return in_neighbor_start[node_id+1] - in_neighbor_start[node_id];
+}
+
+int* Graph::get_in_neighbors(int node_id) {
+  return &(in_neighbor[in_neighbor_start[node_id]]);
+}
+
+
 /* See whether line of text is a comment */
 static inline bool is_comment(char* s) {
   int i;
@@ -182,6 +191,9 @@ bool Graph::create_in_graph(FILE* infile) {
     in_neighbor[cur_in_index[tid]] = hid;
     cur_in_index[tid] += 1;
   }
+
+  free(cur_in_index);
+  return true;
 }
 
 void Graph::show_graph() {
