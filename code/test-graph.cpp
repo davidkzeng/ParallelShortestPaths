@@ -5,10 +5,27 @@
 #include <stdlib.h>
 #include <cmath>
 
+int compareBFSWithUYSP() {
+  FILE *gfile = NULL;
+  gfile = fopen("data/g-u64.gph", "r");
+
+  Graph test(gfile);
+  int rho = sqrt(test.nnode + 1);
+  UYSP sp(&test, rho);
+
+  sp.doPrecomputation();
+
+  int bfsDist = sp.BFS(5, 20);
+  int uyspDist = sp.query(5, 20);
+
+  printf("Distance BFS: %d, Distance UY: %d", bfsDist, uyspDist);
+}
+
 int main(){
   //Graph test (NULL);
   //printf("Number of neighbors:%d\n", test.num_neighbors(0));
 
+  compareBFSWithUYSP();
   FILE *gfile = NULL;
   gfile = fopen("data/g_3_4.gph", "r");
 

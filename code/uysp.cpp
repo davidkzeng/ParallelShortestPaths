@@ -10,6 +10,7 @@ struct Frontier {
 
 void init_frontier_set(Frontier *f, int max) {
   f->max = max;
+  f->count = 0;
   f->vertices = (int *) calloc(max, sizeof(int));
 }
 
@@ -37,9 +38,14 @@ UYSP::UYSP(Graph *g, int rho) {
 
 }
 
+int UYSP::BFS(int start, int target) {
+  return BFSStoreHopDepth(start, NULL, 0, target);
+}
+
 /**
  * Performs a BFS starting at start for bfs_limit iterations.
  * store (int *) : array where depth of the hop nodes encountered should be stored
+ * NULL if no need to store anything
  * reverse (int) : 0 for normal BFS, 1 for BFS along in-edges
  * target (int) : -1 for ignore, t for returning early with the depth of target
  * if found
@@ -59,15 +65,14 @@ int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
 
   cur->vertices[cur->count] = start;
   cur->count++;
+  visited_set[start] = 1;
 
   for (int depth = 1; depth <= bfs_limit; depth++) {
     for (int i = 0; i < cur->count; i++) {
       int v = cur->vertices[i];
-
       if (v == target) {
         return depth - 1;
       }
-      visited_set[v] = 1;
       int* neighbors;
       int num_neighbors;
       if (reverse) {
@@ -81,17 +86,19 @@ int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
       for (int j = 0; j < num_neighbors; j++) {
         int neighbor = neighbors[j];
         if (!visited_set[neighbor]) {
-          if (hop_node_flag[neighbor] >= 0) {
+          if (store != NULL && hop_node_flag[neighbor] >= 0) {
             store[hop_node_flag[neighbor]] = depth;
           }
           next->vertices[next->count] = neighbor;
           next->count++;
+          visited_set[neighbor] = 1;
         }
       }
     }
     tmp = cur;
     cur = next;
     next = tmp;
+    reset_frontier_set(next);
   }
 
   free(cur->vertices);
@@ -124,7 +131,7 @@ void UYSP::doPrecomputation() {
     hop_node_flag[rand_vertex] = i;
   }
 
-  bfs_limit = std::min((int) (6 * rho * log(n)), 10);
+  bfs_limit = std::min((int) (6 * rho * log(n)), 8);
   for (int i = 0; i < rho; i++) {
     BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0, -1);
   }
