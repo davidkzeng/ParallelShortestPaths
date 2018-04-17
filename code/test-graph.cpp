@@ -1,9 +1,27 @@
 #include "graph.h"
 #include "uysp.h"
+#include "cycletimer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
+
+#define TIMER_SIZE 8
+
+#define SET_START(arg) set_start(arg)
+#define SET_END(arg) set_end(arg)
+
+static double startTime[TIMER_SIZE];
+static double totalTime[TIMER_SIZE];
+
+static inline void set_start(int activity) {
+      startTime[activity] = currentSeconds() * 1000;
+}
+
+static inline void set_end(int activity) {
+      double timeSpent = (currentSeconds() * 1000) - startTime[activity];
+            totalTime[activity] += timeSpent;
+}
 
 UYSP create_uysp(Graph g) {
   int rho = pow(g.nnode, 0.5) + 1;
@@ -37,22 +55,30 @@ void print_details(Graph g) {
 
 void compareBFSWithUYSP() {
   FILE *gfile = NULL;
-  gfile = fopen("data/amazon0302.txt", "r");
+  gfile = fopen("data/long_tile500000.gph", "r");
 
   Graph test(gfile);
   int rho = sqrt(test.nnode + 1);
   UYSP sp(&test, rho);
 
+  SET_START(0);
   sp.doPrecomputation();
+  SET_END(0);
 
-  int bfsDist = sp.BFS(100, 25000);
-  int uyspDist = sp.query(100, 25000);
+  SET_START(1);
+  int bfsDist = sp.BFS(100, 199000);
+  SET_END(1);
 
-  printf("Distance BFS: %d, Distance UY: %d", bfsDist, uyspDist);
+  SET_START(2);
+  int uyspDist = sp.query(100, 199000);
+  SET_END(2);
+
+  printf("Distance BFS: %d, Distance UY: %d\n", bfsDist, uyspDist);
+  printf("%.4f %.4f %.4f\n", totalTime[0], totalTime[1], totalTime[2]);
 }
 
 int main(){
-  //  compareBFSWithUYSP();
+  compareBFSWithUYSP();
 
   //Small graph test
   Graph g_1 = create_graph("data/g_3_4.gph");

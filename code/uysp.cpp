@@ -173,9 +173,10 @@ int UYSP::query(int s, int t) {
   }
 
   int res = BFSStoreHopDepth(s, s_dist_to_hop, 0, t);
-  //if (res != -1) {
-  //  return res;
-  //}
+  if (res != -1) {
+    printf("shortcircuit");
+    return res;
+  }
 
   BFSStoreHopDepth(t, t_dist_from_hop, 1, -1);
 
