@@ -53,6 +53,7 @@ int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
   for (int depth = 1; depth <= bfs_limit; depth++) {
     for (int i = 0; i < cur->count; i++) {
       int v = cur->vertices[i];
+
       if (v == target) {
         return depth - 1;
       }
