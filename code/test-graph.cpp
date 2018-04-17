@@ -6,7 +6,7 @@
 #include <cmath>
 
 UYSP create_uysp(Graph g) {
-  int rho = sqrt(g.nnode) + 1;
+  int rho = pow(g.nnode, 0.5) + 1;
   UYSP sp(&g, rho);
   return sp;
 }
@@ -37,7 +37,7 @@ void print_details(Graph g) {
 
 void compareBFSWithUYSP() {
   FILE *gfile = NULL;
-  gfile = fopen("data/g-u1024.gph", "r");
+  gfile = fopen("data/amazon0302.txt", "r");
 
   Graph test(gfile);
   int rho = sqrt(test.nnode + 1);
@@ -45,14 +45,14 @@ void compareBFSWithUYSP() {
 
   sp.doPrecomputation();
 
-  int bfsDist = sp.BFS(100, 900);
-  int uyspDist = sp.query(100, 900);
+  int bfsDist = sp.BFS(100, 25000);
+  int uyspDist = sp.query(100, 25000);
 
   printf("Distance BFS: %d, Distance UY: %d", bfsDist, uyspDist);
 }
 
 int main(){
-  compareBFSWithUYSP();
+  //  compareBFSWithUYSP();
 
   //Small graph test
   Graph g_1 = create_graph("data/g_3_4.gph");
@@ -69,11 +69,11 @@ int main(){
   sp_22_22.doPrecomputation();
   query_print(sp_22_22, 0,12);
 
-  Graph g_u1024 = create_graph("data/g-u1024.gph");
-  print_details(g_u1024);
-  UYSP sp_u1024 = create_uysp(g_u1024);
-  sp_u1024.doPrecomputation();
-  query_print(sp_u1024, 0, 1023);
+  Graph g_u25600 = create_graph("data/g-u25600.gph");
+  print_details(g_u25600);
+  UYSP sp_u25600 = create_uysp(g_u25600);
+  sp_u25600.doPrecomputation();
+  query_print(sp_u25600, 0, 25599);
 
   return 0;
 }
