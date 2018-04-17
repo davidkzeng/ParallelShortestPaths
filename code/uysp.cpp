@@ -1,5 +1,5 @@
 // Ullman and Yanakakis Shortest Path
-
+// TODO: Fix bugs when graph is not connected
 #include "uysp.h"
 
 struct Frontier {
@@ -31,9 +31,13 @@ UYSP::UYSP(Graph *g, int rho) {
   hop_graph = (int *) calloc(rho * rho, sizeof(int));
 }
 
-// Reverse = 0 for normal BFS, = 1 for following in edges
-// target is an optinal argument (set -1 for no use), it adds an additional
-// node to search for
+/**
+ * Performs a BFS starting at start for bfs_limit iterations.
+ * store (int *) : array where depth of the hop nodes encountered should be stored
+ * reverse (int) : 0 for normal BFS, 1 for BFS along in-edges
+ * target (int) : -1 for ignore, t for returning early with the depth of target
+ * if found
+ */
 int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
   // Perform a BFS
   int n = g->nnode;
@@ -94,7 +98,9 @@ int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
   return -1;
 }
 
-
+/**
+ * Performs precomputation needed for queries
+ */
 void UYSP::doPrecomputation() {
   int n = g->nnode;
   // First, we need to sample rho hop nodes
@@ -126,6 +132,11 @@ void UYSP::doPrecomputation() {
 
 }
 
+/**
+ * s (int) : source vertex
+ * t (int) : target vertex
+ * returns distance from s to t if connected, otherwise returns -1
+ */
 int UYSP::query(int s, int t) {
   // TODO: Do BFS with the in edges
   // Loop over hop nodes to find the minimum
@@ -152,6 +163,10 @@ int UYSP::query(int s, int t) {
       if (t_dist_from_hop[t_cand] && hop_node_list[t_cand] != t) {
         continue;
       }
+      if (hop_adj(s_cand, t_cand) == 0 && s_cand != t_cand) {
+        continue;
+      }
+
       int dist = s_dist_to_hop[s_cand] + hop_adj(s_cand, t_cand) +
           t_dist_from_hop[t_cand];
       min_dist = dist < min_dist ? dist : min_dist;
@@ -160,5 +175,5 @@ int UYSP::query(int s, int t) {
 
   free(s_dist_to_hop);
   free(t_dist_from_hop);
-  return min_dist;
+  return min_dist == INT_MAX ? -1 : min_dist;
 }
