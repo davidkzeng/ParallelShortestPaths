@@ -138,7 +138,7 @@ void UYSP::doPrecomputation() {
     hop_node_flag[rand_vertex] = i;
   }
 
-  bfs_limit = std::min((int) (6 * rho * log(n)), 8);
+  bfs_limit = std::max((int) (6 * rho * log(n)), 8);
   for (int i = 0; i < rho; i++) {
     BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0, -1);
   }
@@ -195,7 +195,6 @@ int UYSP::query(int s, int t) {
 
       int dist = s_dist_to_hop[s_cand] + hop_adj(s_cand, t_cand) +
           t_dist_from_hop[t_cand];
-      printf("%d %d %d\n", s_dist_to_hop[s_cand], hop_adj(s_cand, t_cand), t_dist_from_hop[t_cand]);
       min_dist = dist < min_dist ? dist : min_dist;
     }
   }
