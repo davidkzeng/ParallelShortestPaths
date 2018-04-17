@@ -29,10 +29,12 @@ UYSP::UYSP(Graph *g, int rho) {
   hop_node_flag = (int *) calloc(g->nnode, sizeof(int));
 
   hop_graph = (int *) calloc(rho * rho, sizeof(int));
-
 }
 
-void UYSP::BFSStoreHopDepth(int start, int *store, int reverse) {
+// Reverse = 0 for normal BFS, = 1 for following in edges
+// target is an optinal argument (set -1 for no use), it adds an additional
+// node to search for
+int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
   // Perform a BFS
   int n = g->nnode;
 
@@ -51,6 +53,9 @@ void UYSP::BFSStoreHopDepth(int start, int *store, int reverse) {
   for (int depth = 1; depth <= bfs_limit; depth++) {
     for (int i = 0; i < cur->count; i++) {
       int v = cur->vertices[i];
+      if (v == target) {
+        return depth - 1;
+      }
       visited_set[v] = 1;
       int* neighbors;
       int num_neighbors;
@@ -83,16 +88,18 @@ void UYSP::BFSStoreHopDepth(int start, int *store, int reverse) {
   free(cur);
   free(next);
   free(visited_set);
+
+  // Did not find target
+  return -1;
 }
 
 
 void UYSP::doPrecomputation() {
   int n = g->nnode;
-
   // First, we need to sample rho hop nodes
   for (int i = 0; i < rho; i++) {
     int rand_vertex = rand() % n;
-    if (!hop_node_flag[rand_vertex]) {
+    if (hop_node_flag[rand_vertex]) {
       i--;
       continue;
     }
@@ -101,14 +108,10 @@ void UYSP::doPrecomputation() {
   }
 
   bfs_limit = std::min((int) (6 * rho * log(n)), 10);
-
   for (int i = 0; i < rho; i++) {
-    BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0);
+    BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0, -1);
   }
 
-  // TODO:
-  // Implementing APSP
-  // Just doing floyd warshall for now lol maybe switch to something better
 
   for (int k = 0; k < rho; k++) {
     for (int i = 0; i < rho; i++) {
@@ -128,8 +131,12 @@ int UYSP::query(int s, int t) {
   int *s_dist_to_hop = (int *) calloc(rho, sizeof(int));
   int *t_dist_from_hop = (int *) calloc(rho, sizeof(int));
 
-  BFSStoreHopDepth(s, s_dist_to_hop, 0);
-  BFSStoreHopDepth(t, t_dist_from_hop, 1);
+  int res = BFSStoreHopDepth(s, s_dist_to_hop, 0, t);
+  if (res != -1) {
+    return res;
+  }
+
+  BFSStoreHopDepth(t, t_dist_from_hop, 1, -1);
 
   // Compute final shortest paths
 
