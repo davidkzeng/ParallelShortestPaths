@@ -182,6 +182,9 @@ bool Graph::create_in_graph(FILE* infile) {
     in_neighbor[cur_in_index[tid]] = hid;
     cur_in_index[tid] += 1;
   }
+
+  free(cur_in_index);
+  return true;
 }
 
 void Graph::show_graph() {

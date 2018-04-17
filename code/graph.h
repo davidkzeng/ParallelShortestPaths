@@ -33,7 +33,6 @@ class Graph
     bool read_graph(FILE *infile);
     void show_graph();
     void show_in_graph();
-    int get_num_nodes();
     bool create_in_graph(FILE *infile);
 };
 
