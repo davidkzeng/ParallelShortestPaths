@@ -32,6 +32,52 @@ UYSP::UYSP(Graph *g, int rho) {
 
 }
 
+void UYSP::BFSStoreHopDepth(int start, int *store) {
+  // Perform a BFS
+  int n = g->nnode;
+
+  Frontier *cur = (Frontier *) calloc(1, sizeof(Frontier));
+  Frontier *next = (Frontier *) calloc(1, sizeof(Frontier));
+  Frontier *tmp;
+
+  init_frontier_set(cur, n);
+  init_frontier_set(next, n);
+
+  int *visited_set = (int *) calloc(g->nnode, sizeof(int));
+
+  cur->vertices[cur->count] = start;
+  cur->count++;
+
+  for (int depth = 1; depth <= bfs_limit; depth++) {
+    for (int i = 0; i < cur->count; i++) {
+      int v = cur->vertices[i];
+      visited_set[v] = 1;
+      int* neighbors = g->get_neighbors(v);
+      int num_neighbors = g->num_neighbors(v);
+      for (int j = 0; j < num_neighbors; j++) {
+        int neighbor = neighbors[j];
+        if (!visited_set[neighbor]) {
+          if (hop_node_flag[neighbor]) {
+            store[hop_node_flag[neighbor]] = depth;
+          }
+          next->vertices[next->count] = neighbor;
+          next->count++;
+        }
+      }
+    }
+    tmp = cur;
+    cur = next;
+    next = tmp;
+  }
+
+  free(cur->vertices);
+  free(next->vertices);
+  free(cur);
+  free(next);
+  free(visited_set);
+}
+
+
 void UYSP::doPrecomputation() {
   int n = g->nnode;
 
@@ -46,46 +92,10 @@ void UYSP::doPrecomputation() {
     hop_node_flag[rand_vertex] = i;
   }
 
-  int bfs_limit = std::min((int) (6 * rho * log(n)), 10);
+  bfs_limit = std::min((int) (6 * rho * log(n)), 10);
 
-  // Perform a BFS
-  Frontier *cur = (Frontier *) calloc(1, sizeof(Frontier));
-  Frontier *next = (Frontier *) calloc(1, sizeof(Frontier));
-  Frontier *tmp;
-
-  init_frontier_set(cur, n);
-  init_frontier_set(next, n);
-
-  int *visited_set = (int *) calloc(g->nnode, sizeof(int));
-
-  for (int h_index = 0; h_index < rho; h_index++) {
-    reset_frontier_set(next);
-    memset(visited_set, 0, g->nnode * sizeof(int));
-
-    cur->vertices[cur->count] = hop_node_list[h_index];
-    cur->count++;
-
-    for (int depth = 1; depth <= bfs_limit; depth++) {
-      for (int i = 0; i < cur->count; i++) {
-        int v = cur->vertices[i];
-        visited_set[v] = 1;
-        int* neighbors = g->get_neighbors(v);
-        int num_neighbors = g->num_neighbors(v);
-        for (int j = 0; j < num_neighbors; j++) {
-          int neighbor = neighbors[j];
-          if (!visited_set[neighbor]) {
-            if (hop_node_flag[neighbor]) {
-              hop_graph[(rho * i) + hop_node_flag[neighbor]] = depth;
-            }
-            next->vertices[next->count] = neighbor;
-            next->count++;
-          }
-        }
-      }
-      tmp = cur;
-      cur = next;
-      next = tmp;
-    }
+  for (int i = 0; i < rho; i++) {
+    BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i]);
   }
 
   // TODO:
@@ -112,43 +122,7 @@ int UYSP::query(int s, int t) {
   int *s_dist_to_hop = (int *) calloc(rho, sizeof(int));
   int *t_dist_from_hop = (int *) calloc(rho, sizeof(int));
 
-  int bfs_limit = rho * log(n);
-
-  Frontier *cur = (Frontier *) calloc(1, sizeof(Frontier));
-  Frontier *next = (Frontier *) calloc(1, sizeof(Frontier));
-  Frontier *tmp;
-
-  init_frontier_set(cur, n);
-  init_frontier_set(next, n);
-
-  int *visited_set = (int *) calloc(g->nnode, sizeof(int));
-
-  cur->vertices[cur->count] = s;
-  cur->count++;
-
-  for (int depth = 1; depth <= bfs_limit; depth++) {
-    for (int i = 0; i < cur->count; i++) {
-      int v = cur->vertices[i];
-      visited_set[v] = 1;
-      int* neighbors = g->get_neighbors(v);
-      int num_neighbors = g->num_neighbors(v);
-      for (int j = 0; j < num_neighbors; j++) {
-        int neighbor = neighbors[j];
-        if (!visited_set[neighbor]) {
-          if (hop_node_flag[neighbor]) {
-            s_dist_to_hop[hop_node_flag[neighbor]] = depth;
-          }
-          next->vertices[next->count] = neighbor;
-          next->count++;
-        }
-      }
-    }
-    tmp = cur;
-    cur = next;
-    next = tmp;
-  }
-
-  // Fill up t_dist_from_hop
+  BFSStoreHopDepth(s, s_dist_to_hop);
 
   // Compute final shortest paths
 
@@ -169,5 +143,7 @@ int UYSP::query(int s, int t) {
     }
   }
 
+  free(s_dist_to_hop);
+  free(t_dist_from_hop);
   return min_dist;
 }
