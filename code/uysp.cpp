@@ -32,7 +32,7 @@ UYSP::UYSP(Graph *g, int rho) {
 
 }
 
-void UYSP::BFSStoreHopDepth(int start, int *store) {
+void UYSP::BFSStoreHopDepth(int start, int *store, int reverse) {
   // Perform a BFS
   int n = g->nnode;
 
@@ -52,8 +52,16 @@ void UYSP::BFSStoreHopDepth(int start, int *store) {
     for (int i = 0; i < cur->count; i++) {
       int v = cur->vertices[i];
       visited_set[v] = 1;
-      int* neighbors = g->get_neighbors(v);
-      int num_neighbors = g->num_neighbors(v);
+      int* neighbors;
+      int num_neighbors;
+      if (reverse) {
+        neighbors = g->get_in_neighbors(v);
+        num_neighbors = g->num_in_neighbors(v);
+      } else {
+        neighbors = g->get_neighbors(v);
+        num_neighbors = g->num_neighbors(v);
+      }
+
       for (int j = 0; j < num_neighbors; j++) {
         int neighbor = neighbors[j];
         if (!visited_set[neighbor]) {
@@ -95,7 +103,7 @@ void UYSP::doPrecomputation() {
   bfs_limit = std::min((int) (6 * rho * log(n)), 10);
 
   for (int i = 0; i < rho; i++) {
-    BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i]);
+    BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0);
   }
 
   // TODO:
@@ -117,12 +125,11 @@ void UYSP::doPrecomputation() {
 int UYSP::query(int s, int t) {
   // TODO: Do BFS with the in edges
   // Loop over hop nodes to find the minimum
-  int n = g->nnode;
-
   int *s_dist_to_hop = (int *) calloc(rho, sizeof(int));
   int *t_dist_from_hop = (int *) calloc(rho, sizeof(int));
 
-  BFSStoreHopDepth(s, s_dist_to_hop);
+  BFSStoreHopDepth(s, s_dist_to_hop, 0);
+  BFSStoreHopDepth(t, t_dist_from_hop, 1);
 
   // Compute final shortest paths
 

@@ -19,7 +19,7 @@ class UYSP {
   public:
     UYSP(Graph *g, int rho);
     int hop_adj(int i, int j);
-    void BFSStoreHopDepth(int start, int *store);
+    void BFSStoreHopDepth(int start, int *store, int reverse);
     void doPrecomputation();
     int query(int a, int b);
 };
