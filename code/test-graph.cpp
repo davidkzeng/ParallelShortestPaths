@@ -24,7 +24,7 @@ int main(){
   int rho = sqrt(test1.nnode) + 1;
   UYSP sp(&test1, rho);
   sp.doPrecomputation();
-  printf("Distance: %d\n", sp.query(0, 4));
+  //printf("Distance: %d\n", sp.query(0, 4));
   printf("Distance: %d\n", sp.query(0, 2));
 
 
