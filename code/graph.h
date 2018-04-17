@@ -17,6 +17,11 @@ class Graph
     int nnode;
     int nedge;
 
+    // Structures representing inedges.
+    int *in_edge_count;
+    int *in_neighbor;
+    int *in_neighbor_start;
+
     int *neighbor;
     int *neighbor_start;
     Graph(FILE *infile);
@@ -27,7 +32,9 @@ class Graph
     bool new_graph(int num_node, int num_edge);
     bool read_graph(FILE *infile);
     void show_graph();
+    void show_in_graph();
     int get_num_nodes();
+    bool create_in_graph(FILE *infile);
 };
 
 #endif
