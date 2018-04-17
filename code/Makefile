@@ -5,8 +5,8 @@ CFLAGS=-g -O3 -Wall -DDEBUG=$(DEBUG) -Wno-write-strings
 LDFLAGS= -lm
 DDIR = ./data
 
-CFILES = main.cpp uysp.cpp graph.cpp util.cpp
-HFILES = main.h uysp.h graph.h util.h
+CFILES = main.cpp uysp.cpp graph.cpp util.cpp cycletimer.c
+HFILES = main.h uysp.h graph.h util.h cycletimer.h
 
 all: crun crun-omp
 
