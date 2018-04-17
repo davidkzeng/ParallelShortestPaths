@@ -1,7 +1,7 @@
 DEBUG=0
 CC=g++
 OMP=-fopenmp -DOMP
-CFLAGS=-g -O3 -Wall -DDEBUG=$(DEBUG)
+CFLAGS=-g -O3 -Wall -DDEBUG=$(DEBUG) -Wno-write-strings
 LDFLAGS= -lm
 DDIR = ./data
 
