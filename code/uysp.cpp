@@ -138,8 +138,6 @@ void UYSP::doPrecomputation() {
  * returns distance from s to t if connected, otherwise returns -1
  */
 int UYSP::query(int s, int t) {
-  // TODO: Do BFS with the in edges
-  // Loop over hop nodes to find the minimum
   int *s_dist_to_hop = (int *) calloc(rho, sizeof(int));
   int *t_dist_from_hop = (int *) calloc(rho, sizeof(int));
 
@@ -160,7 +158,7 @@ int UYSP::query(int s, int t) {
       continue;
     }
     for (int t_cand = 0; t_cand < rho; t_cand++) {
-      if (t_dist_from_hop[t_cand] && hop_node_list[t_cand] != t) {
+      if (t_dist_from_hop[t_cand] == 0 && hop_node_list[t_cand] != t) {
         continue;
       }
       if (hop_adj(s_cand, t_cand) == 0 && s_cand != t_cand) {
