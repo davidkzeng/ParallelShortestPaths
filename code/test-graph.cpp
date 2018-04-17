@@ -10,7 +10,7 @@ int main(){
   //printf("Number of neighbors:%d\n", test.num_neighbors(0));
 
   FILE *gfile = NULL;
-  gfile = fopen("data/g_6_3.gph", "r");
+  gfile = fopen("data/g_3_4.gph", "r");
 
   Graph test1 (gfile);
   //printf("Number of neighbors:%d\n", test1.num_neighbors(0));
@@ -24,8 +24,8 @@ int main(){
   int rho = sqrt(test1.nnode) + 1;
   UYSP sp(&test1, rho);
   sp.doPrecomputation();
-  //printf("Distance: %d\n", sp.query(0, 4));
   printf("Distance: %d\n", sp.query(0, 2));
+  printf("Distance: %d\n", sp.query(2, 1));
 
 
   /*
