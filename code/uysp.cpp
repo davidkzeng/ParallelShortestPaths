@@ -46,7 +46,7 @@ void UYSP::doPrecomputation() {
     hop_node_flag[rand_vertex] = i;
   }
 
-  int bfs_limit = rho * log(n);
+  int bfs_limit = std::min((int) (6 * rho * log(n)), 10);
 
   // Perform a BFS
   Frontier *cur = (Frontier *) calloc(1, sizeof(Frontier));
@@ -151,5 +151,23 @@ int UYSP::query(int s, int t) {
   // Fill up t_dist_from_hop
 
   // Compute final shortest paths
-  return s - t;
+
+  int min_dist = INT_MAX;
+
+  for (int s_cand = 0; s_cand < rho; s_cand++) {
+    // Distance 0 and not itself means not reachable within bfs_limit
+    if (s_dist_to_hop[s_cand] == 0 && hop_node_list[s_cand] != s) {
+      continue;
+    }
+    for (int t_cand = 0; t_cand < rho; t_cand++) {
+      if (t_dist_from_hop[t_cand] && hop_node_list[t_cand] != t) {
+        continue;
+      }
+      int dist = s_dist_to_hop[s_cand] + hop_adj(s_cand, t_cand) +
+          t_dist_from_hop[t_cand];
+      min_dist = dist < min_dist ? dist : min_dist;
+    }
+  }
+
+  return min_dist;
 }
