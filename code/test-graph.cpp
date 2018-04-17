@@ -7,7 +7,7 @@
 
 int compareBFSWithUYSP() {
   FILE *gfile = NULL;
-  gfile = fopen("data/g-u64.gph", "r");
+  gfile = fopen("data/g-u1024.gph", "r");
 
   Graph test(gfile);
   int rho = sqrt(test.nnode + 1);
@@ -15,8 +15,8 @@ int compareBFSWithUYSP() {
 
   sp.doPrecomputation();
 
-  int bfsDist = sp.BFS(5, 20);
-  int uyspDist = sp.query(5, 20);
+  int bfsDist = sp.BFS(100, 900);
+  int uyspDist = sp.query(100, 900);
 
   printf("Distance BFS: %d, Distance UY: %d", bfsDist, uyspDist);
 }

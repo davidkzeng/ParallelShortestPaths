@@ -38,8 +38,15 @@ UYSP::UYSP(Graph *g, int rho) {
 
 }
 
+/**
+ * Wrapper around BFS
+ */
 int UYSP::BFS(int start, int target) {
-  return BFSStoreHopDepth(start, NULL, 0, target);
+  int saved_bfs_limit = bfs_limit;
+  bfs_limit = g->nnode;;
+  int ans = BFSStoreHopDepth(start, NULL, 0, target);
+  bfs_limit = saved_bfs_limit;
+  return ans;
 }
 
 /**
@@ -135,17 +142,19 @@ void UYSP::doPrecomputation() {
   for (int i = 0; i < rho; i++) {
     BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0, -1);
   }
-
-
   for (int k = 0; k < rho; k++) {
     for (int i = 0; i < rho; i++) {
       for (int j = 0; j < rho; j++) {
-        hop_graph[rho * i + j] = (hop_adj(i, j) == -1 ||
-          hop_adj(i, k) + hop_adj(k, j) < hop_adj(i, j) ? hop_adj(i, k)
+        if (hop_adj(k, j) == -1 || hop_adj(i, k) == -1) {
+          continue;
+        }
+        hop_graph[rho * i + j] = ((hop_adj(i, j) == -1 ||
+          hop_adj(i, k) + hop_adj(k, j) < hop_adj(i, j)) ? hop_adj(i, k)
           + hop_adj(k, j) : hop_adj(i, j));
       }
     }
   }
+
 
 }
 
@@ -186,6 +195,7 @@ int UYSP::query(int s, int t) {
 
       int dist = s_dist_to_hop[s_cand] + hop_adj(s_cand, t_cand) +
           t_dist_from_hop[t_cand];
+      printf("%d %d %d\n", s_dist_to_hop[s_cand], hop_adj(s_cand, t_cand), t_dist_from_hop[t_cand]);
       min_dist = dist < min_dist ? dist : min_dist;
     }
   }
