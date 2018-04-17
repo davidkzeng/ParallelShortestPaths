@@ -14,7 +14,8 @@ class UYSP {
 
   public:
     UYSP(Graph *g, int rho);
-    int doPrecomputation();
+    int hop_adj(int i, int j);
+    void doPrecomputation();
     int query(int a, int b);
 };
 
