@@ -10,6 +10,7 @@ struct Frontier {
 
 void init_frontier_set(Frontier *f, int max) {
   f->max = max;
+  f->count = 0;
   f->vertices = (int *) calloc(max, sizeof(int));
 }
 
@@ -29,11 +30,22 @@ UYSP::UYSP(Graph *g, int rho) {
   hop_node_flag = (int *) calloc(g->nnode, sizeof(int));
 
   hop_graph = (int *) calloc(rho * rho, sizeof(int));
+  for (int i = 0; i < rho; i++) {
+    for (int j = 0; j < rho; j++) {
+      hop_graph[rho * i + j] = (i == j ? 0 : -1);
+    }
+  }
+
+}
+
+int UYSP::BFS(int start, int target) {
+  return BFSStoreHopDepth(start, NULL, 0, target);
 }
 
 /**
  * Performs a BFS starting at start for bfs_limit iterations.
  * store (int *) : array where depth of the hop nodes encountered should be stored
+ * NULL if no need to store anything
  * reverse (int) : 0 for normal BFS, 1 for BFS along in-edges
  * target (int) : -1 for ignore, t for returning early with the depth of target
  * if found
@@ -53,15 +65,14 @@ int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
 
   cur->vertices[cur->count] = start;
   cur->count++;
+  visited_set[start] = 1;
 
   for (int depth = 1; depth <= bfs_limit; depth++) {
     for (int i = 0; i < cur->count; i++) {
       int v = cur->vertices[i];
-
       if (v == target) {
         return depth - 1;
       }
-      visited_set[v] = 1;
       int* neighbors;
       int num_neighbors;
       if (reverse) {
@@ -75,17 +86,19 @@ int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
       for (int j = 0; j < num_neighbors; j++) {
         int neighbor = neighbors[j];
         if (!visited_set[neighbor]) {
-          if (hop_node_flag[neighbor]) {
+          if (store != NULL && hop_node_flag[neighbor] >= 0) {
             store[hop_node_flag[neighbor]] = depth;
           }
           next->vertices[next->count] = neighbor;
           next->count++;
+          visited_set[neighbor] = 1;
         }
       }
     }
     tmp = cur;
     cur = next;
     next = tmp;
+    reset_frontier_set(next);
   }
 
   free(cur->vertices);
@@ -103,10 +116,14 @@ int UYSP::BFSStoreHopDepth(int start, int *store, int reverse, int target) {
  */
 void UYSP::doPrecomputation() {
   int n = g->nnode;
+  for (int i = 0; i < n; i++) {
+    hop_node_flag[i] = -1;
+  }
+
   // First, we need to sample rho hop nodes
   for (int i = 0; i < rho; i++) {
     int rand_vertex = rand() % n;
-    if (hop_node_flag[rand_vertex]) {
+    if (hop_node_flag[rand_vertex] >= 0) {
       i--;
       continue;
     }
@@ -114,7 +131,7 @@ void UYSP::doPrecomputation() {
     hop_node_flag[rand_vertex] = i;
   }
 
-  bfs_limit = std::min((int) (6 * rho * log(n)), 10);
+  bfs_limit = std::min((int) (6 * rho * log(n)), 8);
   for (int i = 0; i < rho; i++) {
     BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0, -1);
   }
@@ -123,7 +140,7 @@ void UYSP::doPrecomputation() {
   for (int k = 0; k < rho; k++) {
     for (int i = 0; i < rho; i++) {
       for (int j = 0; j < rho; j++) {
-        hop_graph[rho * i + j] = ((hop_adj(i, j) == 0 && i != j) ||
+        hop_graph[rho * i + j] = (hop_adj(i, j) == -1 ||
           hop_adj(i, k) + hop_adj(k, j) < hop_adj(i, j) ? hop_adj(i, k)
           + hop_adj(k, j) : hop_adj(i, j));
       }
@@ -141,6 +158,11 @@ int UYSP::query(int s, int t) {
   int *s_dist_to_hop = (int *) calloc(rho, sizeof(int));
   int *t_dist_from_hop = (int *) calloc(rho, sizeof(int));
 
+  for (int i = 0; i < rho; i++) {
+    s_dist_to_hop[i] = -1;
+    t_dist_from_hop[i] = -1;
+  }
+
   int res = BFSStoreHopDepth(s, s_dist_to_hop, 0, t);
   if (res != -1) {
     return res;
@@ -154,14 +176,11 @@ int UYSP::query(int s, int t) {
 
   for (int s_cand = 0; s_cand < rho; s_cand++) {
     // Distance 0 and not itself means not reachable within bfs_limit
-    if (s_dist_to_hop[s_cand] == 0 && hop_node_list[s_cand] != s) {
+    if (s_dist_to_hop[s_cand] == -1) {
       continue;
     }
     for (int t_cand = 0; t_cand < rho; t_cand++) {
-      if (t_dist_from_hop[t_cand] == 0 && hop_node_list[t_cand] != t) {
-        continue;
-      }
-      if (hop_adj(s_cand, t_cand) == 0 && s_cand != t_cand) {
+      if (t_dist_from_hop[t_cand] == -1 || hop_adj(s_cand, t_cand) == -1) {
         continue;
       }
 

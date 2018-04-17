@@ -34,7 +34,25 @@ void print_details(Graph g) {
   //printf("Number of inedges for node 2: %d\n",g.num_in_neighbors(2));
 
 }
+
+void compareBFSWithUYSP() {
+  FILE *gfile = NULL;
+  gfile = fopen("data/g-u64.gph", "r");
+
+  Graph test(gfile);
+  int rho = sqrt(test.nnode + 1);
+  UYSP sp(&test, rho);
+
+  sp.doPrecomputation();
+
+  int bfsDist = sp.BFS(5, 20);
+  int uyspDist = sp.query(5, 20);
+
+  printf("Distance BFS: %d, Distance UY: %d", bfsDist, uyspDist);
+}
+
 int main(){
+  compareBFSWithUYSP();
 
   //Small graph test
   Graph g_1 = create_graph("data/g_3_4.gph");
