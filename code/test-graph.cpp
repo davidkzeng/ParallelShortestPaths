@@ -16,6 +16,9 @@ int main(){
   //printf("Number of neighbors:%d\n", test1.num_neighbors(0));
   printf("Number of nodes: %d\n", test1.nnode);
   printf("Number of edges: %d\n", test1.nedge);
+  printf("Number of inedges for node 0: %d\n",test1.num_in_neighbors(0));
+  printf("Number of inedges for node 1: %d\n",test1.num_in_neighbors(1));
+  printf("Number of inedges for node 2: %d\n",test1.num_in_neighbors(2));
   test1.show_in_graph();
 
   int rho = sqrt(test1.nnode) + 1;
@@ -31,6 +34,10 @@ int main(){
   printf("Number of nodes: %d\n", test2.nnode);
   printf("Number of edges: %d\n", test2.nedge);
   test2.show_in_graph();
+  printf("Number of inedges for node 0: %d\n",test2.num_in_neighbors(0));
+  printf("Number of inedges for node 1: %d\n",test2.num_in_neighbors(1));
+  printf("Number of inedges for node 2: %d\n",test2.num_in_neighbors(2));
+  //test2.show_in_graph();
   */
   return 0;
 }
