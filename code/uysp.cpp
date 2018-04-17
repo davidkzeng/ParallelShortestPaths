@@ -17,6 +17,10 @@ void reset_frontier_set(Frontier *f) {
   f->count = 0;
 }
 
+inline int UYSP::hop_adj(int i, int j) {
+  return hop_graph[rho * i + j];
+}
+
 UYSP::UYSP(Graph *g, int rho) {
   this->g = g;
   this->rho = rho;
@@ -28,7 +32,7 @@ UYSP::UYSP(Graph *g, int rho) {
 
 }
 
-int UYSP::doPrecomputation() {
+void UYSP::doPrecomputation() {
   int n = g->nnode;
 
   // First, we need to sample rho hop nodes
@@ -91,9 +95,9 @@ int UYSP::doPrecomputation() {
   for (int k = 0; k < rho; k++) {
     for (int i = 0; i < rho; i++) {
       for (int j = 0; j < rho; j++) {
-        hop_graph[i][j] = ((hop_graph[i][j] == 0 && i != j) ||
-          hop_graph[i][k] + hop_graph[k][j] < hop_graph[i][j]) ? hop_graph[i][k]
-          + hop_graph[k][j] : hop_graph[i][j];
+        hop_graph[rho * i + j] = ((hop_adj(i, j) == 0 && i != j) ||
+          hop_adj(i, k) + hop_adj(k, j) < hop_adj(i, j) ? hop_adj(i, k)
+          + hop_adj(k, j) : hop_adj(i, j));
       }
     }
   }
@@ -105,8 +109,8 @@ int UYSP::query(int s, int t) {
   // Loop over hop nodes to find the minimum
   int n = g->nnode;
 
-  int *s_dist_to_hop = calloc(rho, sizeof(int));
-  int *t_dist_from_hop = calloc(rho, sizeof(int));
+  int *s_dist_to_hop = (int *) calloc(rho, sizeof(int));
+  int *t_dist_from_hop = (int *) calloc(rho, sizeof(int));
 
   int bfs_limit = rho * log(n);
 
