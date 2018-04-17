@@ -214,11 +214,25 @@ void Graph::show_in_graph() {
   int eid = 0;
   outmsg("In_Graph\n");
 
+  /*
   for (nid = 0; nid < nnode; nid++) {
     outmsg("%d:", nid);
     for (eid = in_neighbor_start[nid]; eid < in_neighbor_start[nid+1]; eid++) {
       outmsg(" %d", in_neighbor[eid]);
     }
     outmsg("\n");
+  }*/
+
+  int i = 0;
+  // Tests whether class functions work properly
+  for (nid = 0; nid < nnode; nid++) {
+    outmsg("%d:", nid);
+    int* arr = get_in_neighbors(nid);
+    int count = num_in_neighbors(nid);
+    for(i = 0; i < count; i++) {
+      outmsg(" %d", arr[i]);
+    }
+    outmsg("\n");
+
   }
 }
