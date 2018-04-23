@@ -136,7 +136,7 @@ bool Graph::create_in_graph(FILE* infile) {
   char linebuf[MAXLINE];
   int num_node,num_edge;
   int i, hid, tid;
-  int nid, eid;
+  int nid;
 
   // Puts in values to in_neighbor_start
   int sum = 0;
@@ -166,7 +166,6 @@ bool Graph::create_in_graph(FILE* infile) {
   }
 
   nid = -1;
-  eid = 0;
   for (i = 0; i < num_edge; i++) {
     while (fgets(linebuf, MAXLINE, infile) != NULL) {
       if (!is_comment(linebuf))
@@ -211,7 +210,6 @@ void Graph::show_graph() {
 
 void Graph::show_in_graph() {
   int nid = 0;
-  int eid = 0;
   outmsg("In_Graph\n");
 
   /*

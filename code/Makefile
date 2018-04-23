@@ -10,7 +10,7 @@ CFILES = main.cpp $(UTILFILES)
 TFILES = test-graph.cpp $(UTILFILES)
 HFILES = main.h uysp.h graph.h util.h cycletimer.h
 
-all: crun crun-omp test
+all: crun crun-omp test test-omp
 
 crun: crun-seq
 		cp -p crun-seq crun
@@ -23,6 +23,9 @@ crun-omp: $(CFILES) $(HFILES)
 
 test: $(TFILES) $(HFILES)
 	$(CC) $(CFLAGS) -o test-seq $(TFILES) $(LDFLAGS)
+
+test-omp: $(TFILES) $(HFILES)
+	$(CC) $(CFLAGS) $(OMP) -o test-omp $(TFILES) $(LDFLAGS)
 
 clean:
 	rm -f crun crun-seq crun-omp

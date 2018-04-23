@@ -1,6 +1,24 @@
 // Ullman and Yanakakis Shortest Path
 // TODO: Fix bugs when graph is not connected
 #include "uysp.h"
+#include "cycletimer.h"
+
+#define TIMER_SIZE 8
+
+#define SET_START(arg) set_start(arg)
+#define SET_END(arg) set_end(arg)
+
+static double startTime[TIMER_SIZE];
+static double totalTime[TIMER_SIZE];
+
+static inline void set_start(int activity) {
+  startTime[activity] = currentSeconds() * 1000;
+}
+
+static inline void set_end(int activity) {
+  double timeSpent = (currentSeconds() * 1000) - startTime[activity];
+      totalTime[activity] += timeSpent;
+}
 
 struct Frontier {
   int count;
@@ -139,9 +157,12 @@ void UYSP::doPrecomputation() {
   }
 
   bfs_limit = std::max((int) (6 * (n / rho) * log(n)), 8);
+#pragma omp parallel for schedule(dynamic) num_threads(8)
   for (int i = 0; i < rho; i++) {
     BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0, -1);
   }
+
+#pragma omp parallel for schedule(dynamic) num_threads(8)
   for (int k = 0; k < rho; k++) {
     for (int i = 0; i < rho; i++) {
       for (int j = 0; j < rho; j++) {

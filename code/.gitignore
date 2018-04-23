@@ -1,4 +1,5 @@
-crun
-crun-seq
-crun-omp
-test-seq
+/crun
+/crun-seq
+/crun-omp
+/test-seq
+/test-omp
