@@ -5,10 +5,10 @@ CFLAGS=-g -O3 -Wall -DDEBUG=$(DEBUG) -Wno-write-strings
 LDFLAGS= -lm
 DDIR = ./data
 
-UTILFILES = uysp.cpp graph.cpp util.cpp cycletimer.c
+UTILFILES = uysp.cpp graph.cpp util.cpp cycletimer.c bucket.cpp
 CFILES = main.cpp $(UTILFILES)
 TFILES = test-graph.cpp $(UTILFILES)
-HFILES = main.h uysp.h graph.h util.h cycletimer.h
+HFILES = main.h uysp.h graph.h util.h cycletimer.h bucket.h
 
 all: crun crun-omp test test-omp
 
@@ -28,5 +28,5 @@ test-omp: $(TFILES) $(HFILES)
 	$(CC) $(CFLAGS) $(OMP) -o test-omp $(TFILES) $(LDFLAGS)
 
 clean:
-	rm -f crun crun-seq crun-omp
+	rm -f crun crun-seq crun-omp test-seq test-omp
 
