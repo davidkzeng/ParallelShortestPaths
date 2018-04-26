@@ -72,7 +72,7 @@ bool BucketStore::isEmpty() {
 }
 
 UBA* BucketStore::getBucket(int i) {
-  return &buckets[i];
+  return &buckets[i % num_buckets];
 }
 
 
