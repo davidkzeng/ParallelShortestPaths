@@ -79,7 +79,7 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  int delta = g->max_weight / 10; // Temporary
+  delta = g->max_weight / 10; // Temporary
   dg = new DeltaGraph(g, delta);
   b = new BucketStore(delta, g->max_weight);
 
@@ -100,12 +100,78 @@ DeltaStep::~DeltaStep() {
   free(tent);
 }
 
-void DeltaStep::runSSSP() {
+void DeltaStep::runSSSP(int v) {
+  // Reusable list. Corresponds to S in psuedocode
+  int *deletedNodes = (int *) calloc(nedge, sizeof(int));
 
+  // Resuable list. Corresponds to Req in the psuedocode
+  int *neighborNodes = (int *) calloc(nedge, sizeof(int));
+  int *neighborNodeDists = (int *) calloc(nedge, sizeof(int));
+
+  relax(v, 0);
+  int i = 0; // cur_bucket
+
+  while (!b->isEmpty()) {
+    int numDeleted = 0;
+    while (!b->isBucketEmpty(i)) {
+      int numNeighbors = 0;
+      UBA *bucket = b->getBucket(i);
+      int bucketSize = bucket->size;
+      int *bucketStore = bucket->store;
+
+      for (int j = 0; j < bucketSize; j++) {
+        int nid = bucketStore[j];
+        int num_light_neighbors = dg->num_light_neighbor(nid);
+        int *light_neighbors = dg->get_light_neighbors(nid);
+        int *light_weights = dg->get_light_weights(nid);
+
+        for (int k = 0; k < num_light_neighbors; k++) {
+          neighborNodes[numNeighbors] = light_neighbors[k];
+          neighborNodeDists[numNeighbors] = light_weights[k] + tent[nid];
+          numNeighbors++;
+        }
+
+        deletedNodes[numDeleted] = nid;
+        numDeleted++;
+      }
+
+      bucket->clear();
+      for (int j = 0; j < numNeighbors; j++) {
+        relax(neighborNodes[j], neighborNodeDists[j]);
+      }
+    }
+
+    int numNeighbors = 0;
+    for (int j = 0; j < numDeleted; j++) {
+      int nid = deletedNodes[j];
+      int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
+      int *heavy_neighbors = dg->get_heavy_neighbors(nid);
+      int *heavy_weights = dg->get_heavy_weights(nid);
+
+      for (int k = 0; k < num_heavy_neighbors; k++) {
+        neighborNodes[numNeighbors] = heavy_neighbors[k];
+        neighborNodeDists[numNeighbors] = heavy_weights[k] + tent[nid];
+        numNeighbors++;
+      }
+    }
+
+    for (int j = 0; j < numNeighbors; j++) {
+      relax(neighborNodes[j], neighborNodeDists[j]);
+    }
+
+    i++;
+  }
 }
 
-void relax(int v, int new_tent) {
-
+void DeltaStep::relax(int v, int new_tent) {
+  if (new_tent < tent[v]) {
+    int old_bucket = tent[v] / delta;
+    int new_bucket = new_tent / delta;
+    if (old_bucket != new_bucket) {
+      b->insert(new_bucket, v);
+    }
+    tent[v] = new_tent;
+  }
 }
 
 

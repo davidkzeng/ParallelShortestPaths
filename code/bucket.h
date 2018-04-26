@@ -7,11 +7,11 @@
 
 
 class UBA {
-  int cap;
-  int size;
-  int* store;
-
   public:
+    int cap;
+    int size;
+    int* store;
+
     UBA(int init_size);
     ~UBA();
     void insert(int v);
@@ -31,7 +31,10 @@ class BucketStore {
     BucketStore(int delta, int max);
     void insert(int index, int v);
     void clearBucket(int index);
+    bool isBucketEmpty(int index);
+    bool isEmpty();
 
+    UBA *getBucket(int index);
 };
 
 

@@ -51,11 +51,12 @@ class DeltaStep {
   int nnode;
   int nedge;
 
+  int delta;
 
   public:
     DeltaStep(Graph *g);
     ~DeltaStep();
 
-    void runSSSP();
+    void runSSSP(int v);
     void relax(int v, int new_tent);
 };
