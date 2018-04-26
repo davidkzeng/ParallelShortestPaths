@@ -157,13 +157,13 @@ void UYSP::doPrecomputation() {
   }
 
   bfs_limit = std::max((int) (6 * (n / rho) * log(n)), 8);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < rho; i++) {
     BFSStoreHopDepth(hop_node_list[i], &hop_graph[rho * i], 0, -1);
   }
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
   for (int k = 0; k < rho; k++) {
+#pragma omp parallel for schedule(static)
     for (int i = 0; i < rho; i++) {
       for (int j = 0; j < rho; j++) {
         if (hop_adj(k, j) == -1 || hop_adj(i, k) == -1) {

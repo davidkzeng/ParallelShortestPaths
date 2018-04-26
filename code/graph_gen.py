@@ -1,8 +1,8 @@
 f = open('data/long_tile500000.gph', 'w')
 
 # Numbered from top to bottom, left to right
-HEIGHT = 3
-WIDTH = 200000
+HEIGHT = 10
+WIDTH = 2000000
 
 TOTAL = HEIGHT * WIDTH
 
