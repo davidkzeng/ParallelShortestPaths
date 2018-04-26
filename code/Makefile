@@ -5,10 +5,10 @@ CFLAGS=-g -O3 -Wall -DDEBUG=$(DEBUG) -Wno-write-strings
 LDFLAGS= -lm
 DDIR = ./data
 
-UTILFILES = uysp.cpp graph.cpp util.cpp cycletimer.c bucket.cpp deltastep.cpp
+UTILFILES = uysp.cpp graph.cpp util.cpp cycletimer.c bucket.cpp dijkstra.cpp deltastep.cpp
 CFILES = main.cpp $(UTILFILES)
 TFILES = test-graph.cpp $(UTILFILES)
-HFILES = main.h uysp.h graph.h util.h cycletimer.h bucket.h deltastep.h
+HFILES = main.h uysp.h graph.h util.h cycletimer.h bucket.h dijkstra.h deltastep.h
 
 all: crun crun-omp test test-omp
 

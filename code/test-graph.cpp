@@ -1,6 +1,7 @@
 #include "graph.h"
 #include "uysp.h"
 #include "cycletimer.h"
+#include "dijkstra.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,6 +106,9 @@ int main(){
   print_details(weighted);
   print_graph(weighted);
   printf("Max weight = %d\n", weighted.max_weight);
+
+  Dijkstra d1 = Dijkstra(&weighted, 0);
+  d1.showDistances();
 
   return 0;
 }
