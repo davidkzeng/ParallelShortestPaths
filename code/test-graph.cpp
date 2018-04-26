@@ -105,17 +105,21 @@ int main(){
   query_print(sp_u25600, 0, 25599);
   */
 
-  Graph weighted = create_graph("data/g_3_4_w.gph");
+  Graph weighted = create_graph("data/g_22_22_w.gph");
   print_details(weighted);
-  print_graph(weighted);
+
+  /*print_graph(weighted);
+
   printf("Max weight = %d\n", weighted.max_weight);
 
   Dijkstra d1 = Dijkstra(&weighted, 0);
   d1.showDistances();
+  */
 
   DeltaStep d2 = DeltaStep(&weighted);
   d2.runSSSP(0);
   d2.showDistances();
+
 
   return 0;
 }

@@ -79,7 +79,8 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  delta = g->max_weight; // Temporary
+  delta = 2;
+  //delta = g->max_weight; // Temporary
   dg = new DeltaGraph(g, delta);
   b = new BucketStore(delta, g->max_weight);
 
