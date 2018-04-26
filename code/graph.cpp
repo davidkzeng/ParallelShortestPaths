@@ -83,6 +83,7 @@ bool Graph::read_graph(FILE *infile) {
   char weighted;
   int i, hid, tid, wid;
   int nid, eid;
+  int max_w = 0;
 
   // Read header information
   while (fgets(linebuf, MAXLINE, infile) != NULL) {
@@ -156,6 +157,9 @@ bool Graph::read_graph(FILE *infile) {
       }
       neighbor[eid] = tid;
       weights[eid] = wid;
+      if (wid > max_w){
+        max_w = wid;
+      }
       eid++;
       in_edge_count[tid] += 1;
 
@@ -166,6 +170,7 @@ bool Graph::read_graph(FILE *infile) {
     neighbor_start[nid] = eid;
   }
   neighbor_start[num_node] = eid;
+  max_weight = max_w;
   // Generate in edges graph
   create_in_graph(infile);
 
