@@ -104,6 +104,7 @@ int main(){
   Graph weighted = create_graph("data/g_3_4_w.gph");
   print_details(weighted);
   print_graph(weighted);
+  printf("Max weight = %d\n", weighted.max_weight);
 
   return 0;
 }

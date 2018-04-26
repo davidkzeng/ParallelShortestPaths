@@ -17,6 +17,7 @@ class Graph
     int nnode;
     int nedge;
     bool is_weighted;
+    int max_weight;
 
     // Structures representing inedges.
     int *in_edge_count;
