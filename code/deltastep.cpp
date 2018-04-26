@@ -109,12 +109,16 @@ void DeltaStep::runSSSP(int v) {
   int *neighborNodes = (int *) calloc(nedge, sizeof(int));
   int *neighborNodeDists = (int *) calloc(nedge, sizeof(int));
 
+  int *timestamp = (int *) calloc(nnode, sizeof(int));
+  int curTime = 0;
+
   relax(v, 0);
   int i = 0; // cur_bucket
 
   while (!b->isEmpty()) {
     int numDeleted = 0;
     while (!b->isBucketEmpty(i)) {
+      curTime++;
       int numNeighbors = 0;
       UBA *bucket = b->getBucket(i);
       int bucketSize = bucket->size;
@@ -125,6 +129,10 @@ void DeltaStep::runSSSP(int v) {
         if ((tent[nid] / delta) < i) {
           continue;
         }
+        if (timestamp[nid] == curTime) {
+          continue;
+        }
+        timestamp[nid] = curTime;
 
         int num_light_neighbors = dg->num_light_neighbor(nid);
         int *light_neighbors = dg->get_light_neighbors(nid);
@@ -170,11 +178,8 @@ void DeltaStep::runSSSP(int v) {
 
 void DeltaStep::relax(int v, int new_tent) {
   if (new_tent < tent[v]) {
-    int old_bucket = tent[v] / delta;
     int new_bucket = new_tent / delta;
-    if (old_bucket != new_bucket) {
-      b->insert(new_bucket, v);
-    }
+    b->insert(new_bucket, v);
     tent[v] = new_tent;
   }
 }
