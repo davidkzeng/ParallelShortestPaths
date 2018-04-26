@@ -121,6 +121,10 @@ void DeltaStep::runSSSP(int v) {
 
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
+        if ((tent[nid] / delta) < i) {
+          continue;
+        }
+
         int num_light_neighbors = dg->num_light_neighbor(nid);
         int *light_neighbors = dg->get_light_neighbors(nid);
         int *light_weights = dg->get_light_weights(nid);
