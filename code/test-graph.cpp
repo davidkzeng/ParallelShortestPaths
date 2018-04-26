@@ -109,17 +109,17 @@ int main(){
   print_details(weighted);
 
   /*print_graph(weighted);
-
+  */
   printf("Max weight = %d\n", weighted.max_weight);
 
   Dijkstra d1 = Dijkstra(&weighted, 0);
   d1.showDistances();
-  */
+  /*
 
   DeltaStep d2 = DeltaStep(&weighted);
   d2.runSSSP(0);
   d2.showDistances();
-
+  */
 
   return 0;
 }
