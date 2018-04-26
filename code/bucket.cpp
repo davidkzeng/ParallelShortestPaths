@@ -9,7 +9,7 @@ UBA::UBA(int init_size) {
 }
 
 UBA::~UBA() {
-  free(store);
+  // free(store);
 }
 
 void UBA::resize() {
@@ -22,6 +22,7 @@ void UBA::resize() {
 
   int *old_store = store;
   store = new_store;
+  cap = new_cap;
   free(old_store);
 }
 
@@ -44,8 +45,9 @@ BucketStore::BucketStore(int delta, int max) {
 
   num_buckets = (max_edge_weight / delta) + 1;
   buckets.reserve(num_buckets);
-
-  buckets.push_back(UBA(10));
+  for (int i = 0; i < num_buckets; i++) {
+    buckets.push_back(UBA(10));
+  }
 }
 
 void BucketStore::insert(int i, int v) {

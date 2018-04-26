@@ -59,4 +59,6 @@ class DeltaStep {
 
     void runSSSP(int v);
     void relax(int v, int new_tent);
+
+    void showDistances();
 };

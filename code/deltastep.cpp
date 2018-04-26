@@ -79,7 +79,7 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  delta = g->max_weight / 10; // Temporary
+  delta = g->max_weight; // Temporary
   dg = new DeltaGraph(g, delta);
   b = new BucketStore(delta, g->max_weight);
 
@@ -175,5 +175,9 @@ void DeltaStep::relax(int v, int new_tent) {
 }
 
 
-
+void DeltaStep::showDistances() {
+  for (int i = 0; i < nnode; i++) {
+    printf("%d\n", tent[i]);
+  }
+}
 

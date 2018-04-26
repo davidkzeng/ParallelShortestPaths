@@ -2,6 +2,7 @@
 #include "uysp.h"
 #include "cycletimer.h"
 #include "dijkstra.h"
+#include "deltastep.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,6 +80,7 @@ void compareBFSWithUYSP() {
 }
 
 int main(){
+  /*
   compareBFSWithUYSP();
 
   //Small graph test
@@ -101,6 +103,7 @@ int main(){
   UYSP sp_u25600 = create_uysp(g_u25600);
   sp_u25600.doPrecomputation();
   query_print(sp_u25600, 0, 25599);
+  */
 
   Graph weighted = create_graph("data/g_3_4_w.gph");
   print_details(weighted);
@@ -109,6 +112,10 @@ int main(){
 
   Dijkstra d1 = Dijkstra(&weighted, 0);
   d1.showDistances();
+
+  DeltaStep d2 = DeltaStep(&weighted);
+  d2.runSSSP(0);
+  d2.showDistances();
 
   return 0;
 }
