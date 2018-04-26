@@ -56,5 +56,23 @@ void BucketStore::clearBucket(int i) {
   buckets[i % num_buckets].clear();
 }
 
+bool BucketStore::isBucketEmpty(int i) {
+  return buckets[i % num_buckets].size == 0;
+}
+
+bool BucketStore::isEmpty() {
+  for (int i = 0; i < num_buckets; i++) {
+    if (!isBucketEmpty(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+UBA* BucketStore::getBucket(int i) {
+  return &buckets[i];
+}
+
+
 
 
