@@ -26,10 +26,12 @@ class BucketStore {
   int delta;
   int max_edge_weight;
   int num_buckets;
-  std::vector<UBA> buckets;
+  std::vector<UBA*> buckets;
 
   public:
     BucketStore(int delta, int max);
+    ~BucketStore();
+
     void insert(int index, int v);
     void clearBucket(int index);
     bool isBucketEmpty(int index);

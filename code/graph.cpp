@@ -19,6 +19,15 @@ Graph::Graph(FILE *infile) {
 
 }
 
+Graph::~Graph() {
+  free(neighbor);
+  free(neighbor_start);
+  free(weights);
+  free(in_neighbor);
+  free(in_neighbor_start);
+  free(in_edge_count);
+}
+
 int Graph::num_neighbors(int node_id) {
   return neighbor_start[node_id+1] - neighbor_start[node_id];
 }
