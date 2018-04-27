@@ -1,7 +1,11 @@
 from random import randint
+import sys
 
-readFile = open('data/g_22_22.gph', "r")
-writeFile = open('data/g_22_22_w.gph', "w")
+datafile = sys.argv[1]
+outputfile = datafile[:-4] + '_w.gph'
+
+readFile = open(datafile, "r")
+writeFile = open(outputfile, "w")
 
 randomCap = 100
 

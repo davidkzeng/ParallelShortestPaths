@@ -138,22 +138,27 @@ void DeltaStep::runSSSP(int v) {
         int *light_neighbors = dg->get_light_neighbors(nid);
         int *light_weights = dg->get_light_weights(nid);
 
+        // Setting Req
         for (int k = 0; k < num_light_neighbors; k++) {
           neighborNodes[numNeighbors] = light_neighbors[k];
           neighborNodeDists[numNeighbors] = light_weights[k] + tent[nid];
           numNeighbors++;
         }
 
+        // Remember deleted nodes
         deletedNodes[numDeleted] = nid;
         numDeleted++;
       }
 
+      // B[i] = 0
       bucket->clear();
+      // foreach (v,x) in Req do relax(v,x)
       for (int j = 0; j < numNeighbors; j++) {
         relax(neighborNodes[j], neighborNodeDists[j]);
       }
     }
 
+    // Sets "Req" to heavy edges
     int numNeighbors = 0;
     for (int j = 0; j < numDeleted; j++) {
       int nid = deletedNodes[j];
@@ -168,6 +173,7 @@ void DeltaStep::runSSSP(int v) {
       }
     }
 
+    // Relax previously deferred edges
     for (int j = 0; j < numNeighbors; j++) {
       relax(neighborNodes[j], neighborNodeDists[j]);
     }
@@ -177,7 +183,9 @@ void DeltaStep::runSSSP(int v) {
 }
 
 void DeltaStep::relax(int v, int new_tent) {
+  // Shorter path to v?
   if (new_tent < tent[v]) {
+    // Insert into new bucket
     int new_bucket = new_tent / delta;
     b->insert(new_bucket, v);
     tent[v] = new_tent;
