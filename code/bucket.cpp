@@ -9,7 +9,7 @@ UBA::UBA(int init_size) {
 }
 
 UBA::~UBA() {
-  // free(store);
+  free(store);
 }
 
 void UBA::resize() {
@@ -46,20 +46,27 @@ BucketStore::BucketStore(int delta, int max) {
   num_buckets = (max_edge_weight / delta) + 1;
   buckets.reserve(num_buckets);
   for (int i = 0; i < num_buckets; i++) {
-    buckets.push_back(UBA(10));
+    buckets.push_back(new UBA(10));
   }
 }
 
+BucketStore::~BucketStore() {
+  for (int i = 0; i < num_buckets; i++) {
+    delete buckets[i];
+  }
+  buckets.clear();
+}
+
 void BucketStore::insert(int i, int v) {
-  buckets[i % num_buckets].insert(v);
+  buckets[i % num_buckets]->insert(v);
 }
 
 void BucketStore::clearBucket(int i) {
-  buckets[i % num_buckets].clear();
+  buckets[i % num_buckets]->clear();
 }
 
 bool BucketStore::isBucketEmpty(int i) {
-  return buckets[i % num_buckets].size == 0;
+  return buckets[i % num_buckets]->size == 0;
 }
 
 bool BucketStore::isEmpty() {
@@ -72,7 +79,7 @@ bool BucketStore::isEmpty() {
 }
 
 UBA* BucketStore::getBucket(int i) {
-  return &buckets[i % num_buckets];
+  return buckets[i % num_buckets];
 }
 
 

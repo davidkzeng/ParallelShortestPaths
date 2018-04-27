@@ -71,6 +71,17 @@ DeltaGraph::DeltaGraph(Graph *g, int delta) {
   }
 }
 
+DeltaGraph::~DeltaGraph() {
+  free(light_neighbor);
+  free(heavy_neighbor);
+  free(light_neighbor_weights);
+  free(heavy_neighbor_weights);
+  free(light_neighbor_start);
+  free(heavy_neighbor_start);
+  free(light_neighbor_end);
+  free(heavy_neighbor_end);
+}
+
 int DeltaGraph::num_light_neighbor(int node_id) {
   return light_neighbor_end[node_id] - light_neighbor_start[node_id];
 }
@@ -201,6 +212,11 @@ void DeltaStep::runSSSP(int v) {
 
     i++;
   }
+
+  free(deletedNodes);
+  free(neighborNodes);
+  free(neighborNodeDists);
+  free(timestamp);
 }
 
 void DeltaStep::relax(int v, int new_tent) {

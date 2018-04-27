@@ -72,6 +72,10 @@ Dijkstra::Dijkstra(Graph *g, int src) {
   free(visited);
 }
 
+Dijkstra::~Dijkstra() {
+  free(distances);
+}
+
 void Dijkstra::showDistances(){
   for(int i = 0; i < size; i++) {
     printf("Min distance from src %d to dest %d is: %d\n", source, i, distances[i]);

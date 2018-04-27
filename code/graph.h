@@ -30,6 +30,8 @@ class Graph
     int *neighbor;
     int *neighbor_start;
     Graph(FILE *infile);
+    ~Graph();
+
     //Returns pointer to start of node_id's neighbor list
     int* get_neighbors(int node_id);
     //Returns number of neighbors of node_id

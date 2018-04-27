@@ -29,6 +29,7 @@ class DeltaGraph {
     int *heavy_neighbor_end;
 
     DeltaGraph(Graph *g, int delta);
+    ~DeltaGraph();
 
     int num_light_neighbor(int node_id);
     int num_heavy_neighbor(int node_id);

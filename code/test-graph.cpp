@@ -35,20 +35,20 @@ void query_print(UYSP sp, int source, int dest) {
   printf("Distance from vtx %d to %d: %d\n",source,dest, sp.query(source, dest));
 }
 
-Graph create_graph(char* filename) {
+Graph* create_graph(char* filename) {
   FILE *gfile = fopen(filename, "r");
-  Graph ret (gfile);
+  Graph *ret = new Graph(gfile);
   fclose(gfile);
   return ret;
 }
 
-void print_graph(Graph g) {
-  g.show_graph();
+void print_graph(Graph *g) {
+  g->show_graph();
 }
 
-void print_details(Graph g) {
-  printf("Number of nodes: %d\n", g.nnode);
-  printf("Number of edges: %d\n", g.nedge);
+void print_details(Graph *g) {
+  printf("Number of nodes: %d\n", g->nnode);
+  printf("Number of edges: %d\n", g->nedge);
   //printf("Number of inedges for node 0: %d\n",g.num_in_neighbors(0));
   //printf("Number of inedges for node 1: %d\n",g.num_in_neighbors(1));
   //printf("Number of inedges for node 2: %d\n",g.num_in_neighbors(2));
@@ -105,31 +105,37 @@ int main(){
   query_print(sp_u25600, 0, 25599);
   */
 
-  Graph weighted = create_graph("data/amazon_w.gph");
+  Graph *weighted = create_graph("data/amazon_w.gph");
   print_details(weighted);
 
   // print_graph(weighted);
 
   // printf("Max weight = %d\n", weighted.max_weight);
 
-  SET_START(0);
-  Dijkstra d1 = Dijkstra(&weighted, 0);
-  SET_END(0);
-  // d1.showDistances();
+  for (int test_num = 0; test_num < 1; test_num++) {
+    SET_START(0);
+    Dijkstra *d1 = new Dijkstra(weighted, 0);
+    SET_END(0);
+    // d1.showDistances();
 
 
-  SET_START(1);
-  DeltaStep d2 = DeltaStep(&weighted);
-  SET_END(1);
-  SET_START(2);
-  d2.runSSSP(0);
-  SET_END(2);
+    SET_START(1);
+    DeltaStep *d2 = new DeltaStep(weighted);
+    SET_END(1);
+    SET_START(2);
+    d2->runSSSP(0);
+    SET_END(2);
 
-  for (int i = 0; i < 3; i++) {
-    printf("%.4f\n", totalTime[i]);
+    for (int i = 0; i < 3; i++) {
+      printf("%.4f\n", totalTime[i]);
+    }
+
+    // d2.showDistances();
+
+    delete d1;
+    delete d2;
   }
 
-  // d2.showDistances();
-
+  delete weighted;
   return 0;
 }
