@@ -105,8 +105,8 @@ int main(){
   query_print(sp_u25600, 0, 25599);
   */
 
-  Graph *weighted = create_graph("data/wiki-Talk_w.gph");
   //Graph *weighted = create_graph("data/amazon_w.gph");
+  Graph *weighted = create_graph("data/wiki_topcats_w.gph");
   print_details(weighted);
 
   // print_graph(weighted);
@@ -119,7 +119,6 @@ int main(){
     SET_END(0);
     // d1.showDistances();
 
-
     SET_START(1);
     DeltaStep *d2 = new DeltaStep(weighted);
     SET_END(1);
@@ -127,14 +126,14 @@ int main(){
     d2->runSSSP(0);
     SET_END(2);
 
-    for (int i = 0; i < 3; i++) {
-      printf("%.4f\n", totalTime[i]);
-    }
-
     // d2.showDistances();
 
     delete d1;
     delete d2;
+  }
+
+  for (int i = 0; i < 3; i++) {
+    printf("%.4f\n", totalTime[i]);
   }
 
   delete weighted;
