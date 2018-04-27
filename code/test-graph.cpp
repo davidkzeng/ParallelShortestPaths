@@ -105,7 +105,7 @@ int main(){
   query_print(sp_u25600, 0, 25599);
   */
 
-  Graph weighted = create_graph("data/amazon_w.gph");
+  Graph weighted = create_graph("data/wiki-Talk_w.gph");
   print_details(weighted);
 
   // print_graph(weighted);
