@@ -108,17 +108,28 @@ int main(){
   Graph weighted = create_graph("data/amazon_w.gph");
   print_details(weighted);
 
-  /*print_graph(weighted);
+  // print_graph(weighted);
 
-  printf("Max weight = %d\n", weighted.max_weight);
+  // printf("Max weight = %d\n", weighted.max_weight);
 
+  SET_START(0);
   Dijkstra d1 = Dijkstra(&weighted, 0);
-  d1.showDistances();
-  */
+  SET_END(0);
+  // d1.showDistances();
 
+
+  SET_START(1);
   DeltaStep d2 = DeltaStep(&weighted);
+  SET_END(1);
+  SET_START(2);
   d2.runSSSP(0);
-  d2.showDistances();
+  SET_END(2);
+
+  for (int i = 0; i < 3; i++) {
+    printf("%.4f\n", totalTime[i]);
+  }
+
+  // d2.showDistances();
 
   return 0;
 }

@@ -2,6 +2,25 @@
 
 #define INF INT_MAX
 
+#include "cycletimer.h"
+
+#define TIMER_SIZE 8
+
+#define SET_START(arg) set_start(arg)
+#define SET_END(arg) set_end(arg)
+
+static double startTime[TIMER_SIZE];
+static double totalTime[TIMER_SIZE];
+
+static inline void set_start(int activity) {
+    startTime[activity] = currentSeconds() * 1000;
+}
+
+static inline void set_end(int activity) {
+    double timeSpent = (currentSeconds() * 1000) - startTime[activity];
+          totalTime[activity] += timeSpent;
+}
+
 DeltaGraph::DeltaGraph(Graph *g, int delta) {
   this->g = g;
 
@@ -79,9 +98,11 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  delta = 30;
+  delta = 1;
   //delta = g->max_weight; // Temporary
+
   dg = new DeltaGraph(g, delta);
+
   b = new BucketStore(delta, g->max_weight);
 
   nnode = g->nnode;
