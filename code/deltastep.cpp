@@ -155,6 +155,7 @@ void DeltaStep::runSeqSSSP(int v) {
       UBA *bucket = b->getBucket(i);
       int bucketSize = bucket->size;
       int *bucketStore = bucket->store;
+      SET_START(0);
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         if ((tent[nid] / delta) < i) {
@@ -178,18 +179,22 @@ void DeltaStep::runSeqSSSP(int v) {
         }
 
       }
+      SET_START(3);
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         deletedNodes[numDeleted + j] = nid;
       }
-
+      SET_END(3);
+      SET_END(0);
       numDeleted += bucketSize;
       bucket->clear();
+      SET_START(1);
       for (int j = 0; j < numNeighbors; j++) {
         relax(neighborNodes[j], neighborNodeDists[j]);
       }
+      SET_END(1);
     }
-
+    SET_START(2);
     int numNeighbors = 0;
     for (int j = 0; j < numDeleted; j++) {
       int nid = deletedNodes[j];
@@ -207,7 +212,7 @@ void DeltaStep::runSeqSSSP(int v) {
     for (int j = 0; j < numNeighbors; j++) {
       relax(neighborNodes[j], neighborNodeDists[j]);
     }
-
+    SET_END(2);
     i++;
   }
 
@@ -215,6 +220,8 @@ void DeltaStep::runSeqSSSP(int v) {
   free(neighborNodes);
   free(neighborNodeDists);
   free(timestamp);
+  printf("%.4f %.4f %.4f %.4f\n", totalTime[0], totalTime[1], totalTime[2], totalTime[3]);
+
 }
 
 void DeltaStep::runSSSP(int v) {
@@ -253,6 +260,7 @@ void DeltaStep::runSSSP(int v) {
       int bucketSize = bucket->size;
       int *bucketStore = bucket->store;
 #if OMP
+      SET_START(0);
 #pragma omp parallel num_threads(NUM_THREADS)
       {
         int numNeighborsPrivate = 0;
@@ -287,23 +295,28 @@ void DeltaStep::runSSSP(int v) {
 
       }
 #endif
-#pragma omp parallel for schedule(static, 32)
+      SET_START(3);
+// This is very weird, maybe investigate further
+//#pragma omp parallel for schedule(static, 32)
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         deletedNodes[numDeleted + j] = nid;
       }
-
+      SET_END(3);
+      SET_END(0);
       numDeleted += bucketSize;
       // B[i] = 0
       bucket->clear();
+      SET_START(1);
       // foreach (v,x) in Req do relax(v,x)
       for (int i = 0 ;i < NUM_THREADS; i++) {
         for (int j = 0; j < numNeighbors[i]; j++) {
           relax(neighborNodes[i][j], neighborNodeDists[i][j]);
         }
       }
+      SET_END(1);
     }
-
+    SET_START(2);
     // Sets "Req" to heavy edges
     int numNeighborsDel = 0;
     for (int j = 0; j < numDeleted; j++) {
@@ -323,7 +336,7 @@ void DeltaStep::runSSSP(int v) {
     for (int j = 0; j < numNeighborsDel; j++) {
       relax(neighborNodes[0][j], neighborNodeDists[0][j]);
     }
-
+    SET_END(2);
     i++;
   }
 
@@ -338,6 +351,7 @@ void DeltaStep::runSSSP(int v) {
   free(neighborNodes);
   free(neighborNodeDists);
   free(timestamp);
+  printf("%.4f %.4f %.4f %.4f\n", totalTime[0], totalTime[1], totalTime[2], totalTime[3]);
 }
 
 void DeltaStep::relax(int v, int new_tent) {
