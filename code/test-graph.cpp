@@ -127,6 +127,19 @@ int main(){
 
     // d2.showDistances();
 
+    bool match = true;
+    for(int i = 0; i < d1->size ; i++) {
+      if(d2->tent[i] != d1->distances[i]) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      printf("Results match\n");
+    }else {
+      printf("Results do not match\n");
+    }
+
     delete d1;
     delete d2;
   }
