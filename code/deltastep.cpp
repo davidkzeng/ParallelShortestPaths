@@ -297,7 +297,7 @@ void DeltaStep::runSSSP(int v) {
 #endif
       SET_START(3);
 // This is very weird, maybe investigate further
-//#pragma omp parallel for schedule(static, 32)
+//#pragma omp simd
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         deletedNodes[numDeleted + j] = nid;
