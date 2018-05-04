@@ -179,12 +179,10 @@ void DeltaStep::runSeqSSSP(int v) {
         }
 
       }
-      SET_START(3);
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         deletedNodes[numDeleted + j] = nid;
       }
-      SET_END(3);
       SET_END(0);
       numDeleted += bucketSize;
       bucket->clear();
@@ -194,8 +192,8 @@ void DeltaStep::runSeqSSSP(int v) {
       }
       SET_END(1);
     }
-    SET_START(2);
     int numNeighbors = 0;
+    SET_START(2);
     for (int j = 0; j < numDeleted; j++) {
       int nid = deletedNodes[j];
       int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
@@ -208,11 +206,12 @@ void DeltaStep::runSeqSSSP(int v) {
         numNeighbors++;
       }
     }
-
+    SET_END(2);
+    SET_START(3);
     for (int j = 0; j < numNeighbors; j++) {
       relax(neighborNodes[j], neighborNodeDists[j]);
     }
-    SET_END(2);
+    SET_END(3);
     i++;
   }
 
@@ -281,7 +280,6 @@ void DeltaStep::runSSSP(int v) {
           int *light_weights = dg->get_light_weights(nid);
 
           // Setting Req
-          int array_spot;
           for (int k = 0; k < num_light_neighbors; k++) {
 
             neighborNodes[thread_id][numNeighborsPrivate] = light_neighbors[k];
@@ -292,17 +290,14 @@ void DeltaStep::runSSSP(int v) {
 
         }
         numNeighbors[thread_id] = numNeighborsPrivate;
-
       }
 #endif
-      SET_START(3);
 // This is very weird, maybe investigate further
-//#pragma omp parallel for schedule(static, 32)
+//#pragma omp parallel for schedule(static)
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         deletedNodes[numDeleted + j] = nid;
       }
-      SET_END(3);
       SET_END(0);
       numDeleted += bucketSize;
       // B[i] = 0
@@ -316,30 +311,42 @@ void DeltaStep::runSSSP(int v) {
       }
       SET_END(1);
     }
-    SET_START(2);
     // Sets "Req" to heavy edges
-    int numNeighborsDel = 0;
-    for (int j = 0; j < numDeleted; j++) {
-      int nid = deletedNodes[j];
-      int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
-      int *heavy_neighbors = dg->get_heavy_neighbors(nid);
-      int *heavy_weights = dg->get_heavy_weights(nid);
+#if OMP
+    SET_START(2);
+#pragma omp parallel num_threads(NUM_THREADS)
+    {
+      int numNeighborsDelPrivate = 0;
+      int thread_id = omp_get_thread_num();
 
-      for (int k = 0; k < num_heavy_neighbors; k++) {
-        neighborNodes[0][numNeighborsDel] = heavy_neighbors[k];
-        neighborNodeDists[0][numNeighborsDel] = heavy_weights[k] + tent[nid];
-        numNeighborsDel++;
+#pragma omp for schedule(static)
+      for (int j = 0; j < numDeleted; j++) {
+        int nid = deletedNodes[j];
+        int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
+        int *heavy_neighbors = dg->get_heavy_neighbors(nid);
+        int *heavy_weights = dg->get_heavy_weights(nid);
+
+        for (int k = 0; k < num_heavy_neighbors; k++) {
+          neighborNodes[thread_id][numNeighborsDelPrivate] = heavy_neighbors[k];
+          neighborNodeDists[thread_id][numNeighborsDelPrivate] = heavy_weights[k] + tent[nid];
+          numNeighborsDelPrivate++;
+        }
       }
-    }
 
-    // Relax previously deferred edges
-    for (int j = 0; j < numNeighborsDel; j++) {
-      relax(neighborNodes[0][j], neighborNodeDists[0][j]);
+      numNeighbors[thread_id] = numNeighborsDelPrivate;
     }
     SET_END(2);
+    SET_START(3);
+    // Relax previously deferred edges
+    for (int thread_id = 0; thread_id < NUM_THREADS; thread_id++) {
+      for (int j = 0; j < numNeighbors[thread_id]; j++) {
+        relax(neighborNodes[thread_id][j], neighborNodeDists[thread_id][j]);
+      }
+    }
+    SET_END(3);
     i++;
+#endif
   }
-
   free(deletedNodes);
 
 
