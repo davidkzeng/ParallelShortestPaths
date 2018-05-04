@@ -5,6 +5,7 @@
 #include "cycletimer.h"
 
 #define TIMER_SIZE 8
+#define NUM_THREADS 12
 
 #define SET_START(arg) set_start(arg)
 #define SET_END(arg) set_end(arg)
@@ -40,6 +41,7 @@ DeltaGraph::DeltaGraph(Graph *g, int delta) {
   light_neighbor_end = (int *) calloc(nnode, sizeof(int));
   heavy_neighbor_end = (int *) calloc(nnode, sizeof(int));
 
+#pragma omp parallel for schedule(static)
   for (int i = 0; i < nnode; i++) {
     int *neighbors = g->get_neighbors(i);
     int *weights = g->get_weights(i);
@@ -109,7 +111,7 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  delta = 1;
+  delta = 20;
   //delta = g->max_weight; // Temporary
 
   dg = new DeltaGraph(g, delta);
@@ -155,7 +157,7 @@ void DeltaStep::runSSSP(int v) {
       UBA *bucket = b->getBucket(i);
       int bucketSize = bucket->size;
       int *bucketStore = bucket->store;
-
+#pragma omp parallel for schedule(static)
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         if ((tent[nid] / delta) < i) {
@@ -171,17 +173,23 @@ void DeltaStep::runSSSP(int v) {
         int *light_weights = dg->get_light_weights(nid);
 
         // Setting Req
+        int array_spot;
         for (int k = 0; k < num_light_neighbors; k++) {
-          neighborNodes[numNeighbors] = light_neighbors[k];
-          neighborNodeDists[numNeighbors] = light_weights[k] + tent[nid];
-          numNeighbors++;
+#pragma omp atomic capture
+          array_spot = numNeighbors++;
+
+          neighborNodes[array_spot] = light_neighbors[k];
+          neighborNodeDists[array_spot] = light_weights[k] + tent[nid];
         }
 
-        // Remember deleted nodes
-        deletedNodes[numDeleted] = nid;
-        numDeleted++;
+      }
+#pragma omp parallel for schedule(static, 32)
+      for (int j = 0; j < bucketSize; j++) {
+        int nid = bucketStore[j];
+        deletedNodes[numDeleted + j] = nid;
       }
 
+      numDeleted += bucketSize;
       // B[i] = 0
       bucket->clear();
       // foreach (v,x) in Req do relax(v,x)

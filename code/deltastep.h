@@ -4,7 +4,6 @@
 #include <limits.h>
 #include <algorithm>
 
-
 #include "graph.h"
 #include "bucket.h"
 
