@@ -165,7 +165,7 @@ void DeltaStep::runSSSP(int v) {
       UBA *bucket = b->getBucket(i);
       int bucketSize = bucket->size;
       int *bucketStore = bucket->store;
-#if omp
+#if OMP
 #pragma omp parallel num_threads(NUM_THREADS)
       {
       int numNeighborsPrivate = 0;
@@ -188,7 +188,6 @@ void DeltaStep::runSSSP(int v) {
         // Setting Req
         int array_spot;
         for (int k = 0; k < num_light_neighbors; k++) {
-
           neighborNodes[omp_get_thread_num()][numNeighbors] = light_neighbors[k];
           neighborNodeDists[omp_get_thread_num()][numNeighbors] =
               light_weights[k] + tent[nid];
