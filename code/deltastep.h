@@ -47,14 +47,13 @@ class DeltaStep {
   DeltaGraph *dg;
   BucketStore *b;
 
-  int *tent; // Will contain distances after calling runSSSP
-
   int nnode;
   int nedge;
 
   int delta;
 
   public:
+    int *tent; // Will contain distances after calling runSSSP
     DeltaStep(Graph *g);
     ~DeltaStep();
 
