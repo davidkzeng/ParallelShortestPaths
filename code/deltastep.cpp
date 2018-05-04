@@ -14,12 +14,12 @@ static double startTime[TIMER_SIZE];
 static double totalTime[TIMER_SIZE];
 
 static inline void set_start(int activity) {
-    startTime[activity] = currentSeconds() * 1000;
+  startTime[activity] = currentSeconds() * 1000;
 }
 
 static inline void set_end(int activity) {
-    double timeSpent = (currentSeconds() * 1000) - startTime[activity];
-          totalTime[activity] += timeSpent;
+  double timeSpent = (currentSeconds() * 1000) - startTime[activity];
+  totalTime[activity] += timeSpent;
 }
 
 DeltaGraph::DeltaGraph(Graph *g, int delta) {
@@ -111,7 +111,7 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  delta = 20;
+  delta = 15;
   //delta = g->max_weight; // Temporary
 
   dg = new DeltaGraph(g, delta);
@@ -135,7 +135,94 @@ DeltaStep::~DeltaStep() {
   free(tent);
 }
 
+void DeltaStep::runSeqSSSP(int v) {
+  int *deletedNodes = (int *) calloc(nedge, sizeof(int));
+
+  int *neighborNodes = (int *) calloc(nedge, sizeof(int));
+  int *neighborNodeDists = (int *) calloc(nedge, sizeof(int));
+
+  int *timestamp = (int *) calloc(nnode, sizeof(int));
+  int curTime = 0;
+
+  relax(v, 0);
+  int i = 0;
+
+  while (!b->isEmpty()) {
+    int numDeleted = 0;
+    while (!b->isBucketEmpty(i)) {
+      curTime++;
+      int numNeighbors = 0;
+      UBA *bucket = b->getBucket(i);
+      int bucketSize = bucket->size;
+      int *bucketStore = bucket->store;
+      for (int j = 0; j < bucketSize; j++) {
+        int nid = bucketStore[j];
+        if ((tent[nid] / delta) < i) {
+          continue;
+        }
+        if (timestamp[nid] == curTime) {
+          continue;
+        }
+        timestamp[nid] = curTime;
+
+        int num_light_neighbors = dg->num_light_neighbor(nid);
+        int *light_neighbors = dg->get_light_neighbors(nid);
+        int *light_weights = dg->get_light_weights(nid);
+
+        int array_spot;
+        for (int k = 0; k < num_light_neighbors; k++) {
+          array_spot = numNeighbors++;
+
+          neighborNodes[array_spot] = light_neighbors[k];
+          neighborNodeDists[array_spot] = light_weights[k] + tent[nid];
+        }
+
+      }
+      for (int j = 0; j < bucketSize; j++) {
+        int nid = bucketStore[j];
+        deletedNodes[numDeleted + j] = nid;
+      }
+
+      numDeleted += bucketSize;
+      bucket->clear();
+      for (int j = 0; j < numNeighbors; j++) {
+        relax(neighborNodes[j], neighborNodeDists[j]);
+      }
+    }
+
+    int numNeighbors = 0;
+    for (int j = 0; j < numDeleted; j++) {
+      int nid = deletedNodes[j];
+      int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
+      int *heavy_neighbors = dg->get_heavy_neighbors(nid);
+      int *heavy_weights = dg->get_heavy_weights(nid);
+
+      for (int k = 0; k < num_heavy_neighbors; k++) {
+        neighborNodes[numNeighbors] = heavy_neighbors[k];
+        neighborNodeDists[numNeighbors] = heavy_weights[k] + tent[nid];
+        numNeighbors++;
+      }
+    }
+
+    for (int j = 0; j < numNeighbors; j++) {
+      relax(neighborNodes[j], neighborNodeDists[j]);
+    }
+
+    i++;
+  }
+
+  free(deletedNodes);
+  free(neighborNodes);
+  free(neighborNodeDists);
+  free(timestamp);
+}
+
 void DeltaStep::runSSSP(int v) {
+#if !OMP
+  runSeqSSSP(v);
+  return;
+#endif
+
   // Reusable list. Corresponds to S in psuedocode
   int *deletedNodes = (int *) calloc(nedge, sizeof(int));
 
@@ -174,12 +261,11 @@ void DeltaStep::runSSSP(int v) {
 #pragma omp for schedule(static)
         for (int j = 0; j < bucketSize; j++) {
           int nid = bucketStore[j];
-          if ((tent[nid] / delta) < i) {
+
+          if (timestamp[nid] == curTime || (tent[nid] / delta) < i) {
             continue;
           }
-          if (timestamp[nid] == curTime) {
-            continue;
-          }
+
           timestamp[nid] = curTime;
 
           int num_light_neighbors = dg->num_light_neighbor(nid);
@@ -192,7 +278,7 @@ void DeltaStep::runSSSP(int v) {
 
             neighborNodes[thread_id][numNeighborsPrivate] = light_neighbors[k];
             neighborNodeDists[thread_id][numNeighborsPrivate] =
-                light_weights[k] + tent[nid];
+              light_weights[k] + tent[nid];
             numNeighborsPrivate++;
           }
 

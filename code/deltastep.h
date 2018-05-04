@@ -58,6 +58,7 @@ class DeltaStep {
     DeltaStep(Graph *g);
     ~DeltaStep();
 
+    void runSeqSSSP(int v);
     void runSSSP(int v);
     void relax(int v, int new_tent);
 
