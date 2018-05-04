@@ -104,8 +104,8 @@ int main(){
   sp_u25600.doPrecomputation();
   query_print(sp_u25600, 0, 25599);
   */
-  Graph *weighted = create_graph("/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon_w.gph");
-  //Graph *weighted = create_graph("data/wiki_topcats_w.gph");
+  //Graph *weighted = create_graph("/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon_w.gph");
+  Graph *weighted = create_graph("/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/wiki-topcats_w.gph");
   print_details(weighted);
 
   // print_graph(weighted);

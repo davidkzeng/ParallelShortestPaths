@@ -140,8 +140,17 @@ void DeltaStep::runSSSP(int v) {
   int *deletedNodes = (int *) calloc(nedge, sizeof(int));
 
   // Resuable list. Corresponds to Req in the psuedocode
-  int *neighborNodes = (int *) calloc(nedge, sizeof(int));
-  int *neighborNodeDists = (int *) calloc(nedge, sizeof(int));
+  //int *neighborNodes = (int *) calloc(nedge, sizeof(int));
+  //int *neighborNodeDists = (int *) calloc(nedge, sizeof(int));
+
+  int **neighborNodes = (int **) calloc(NUM_THREADS, sizeof(int*));
+  int **neighborNodeDists = (int **) calloc(NUM_THREADS, sizeof(int*));
+  int *numNeighbors = (int*) calloc(NUM_THREADS, sizeof(int));
+
+  for (int i = 0 ; i < NUM_THREADS; i++) {
+    neighborNodes[i] = (int*) calloc(nedge,sizeof(int));
+    neighborNodeDists[i] = (int*) calloc(nedge,sizeof(int));
+  }
 
   int *timestamp = (int *) calloc(nnode, sizeof(int));
   int curTime = 0;
@@ -153,11 +162,15 @@ void DeltaStep::runSSSP(int v) {
     int numDeleted = 0;
     while (!b->isBucketEmpty(i)) {
       curTime++;
-      int numNeighbors = 0;
       UBA *bucket = b->getBucket(i);
       int bucketSize = bucket->size;
       int *bucketStore = bucket->store;
-#pragma omp parallel for schedule(static)
+#if omp
+#pragma omp parallel num_threads(NUM_THREADS)
+      {
+      int numNeighborsPrivate = 0;
+
+#pragma omp for schedule(static)
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         if ((tent[nid] / delta) < i) {
@@ -175,14 +188,18 @@ void DeltaStep::runSSSP(int v) {
         // Setting Req
         int array_spot;
         for (int k = 0; k < num_light_neighbors; k++) {
-#pragma omp atomic capture
-          array_spot = numNeighbors++;
 
-          neighborNodes[array_spot] = light_neighbors[k];
-          neighborNodeDists[array_spot] = light_weights[k] + tent[nid];
+          neighborNodes[omp_get_thread_num()][numNeighbors] = light_neighbors[k];
+          neighborNodeDists[omp_get_thread_num()][numNeighbors] =
+              light_weights[k] + tent[nid];
+          numNeighbors++;
         }
 
       }
+      numNeighbors[omp_get_thread_num()] = numNeighborsPrivate;
+
+      }
+#endif
 #pragma omp parallel for schedule(static, 32)
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
@@ -193,13 +210,15 @@ void DeltaStep::runSSSP(int v) {
       // B[i] = 0
       bucket->clear();
       // foreach (v,x) in Req do relax(v,x)
-      for (int j = 0; j < numNeighbors; j++) {
-        relax(neighborNodes[j], neighborNodeDists[j]);
+      for (int i = 0 ;i < NUM_THREADS; i++) {
+        for (int j = 0; j < numNeighbors[i]; j++) {
+          relax(neighborNodes[i][j], neighborNodeDists[i][j]);
+        }
       }
     }
 
     // Sets "Req" to heavy edges
-    int numNeighbors = 0;
+    int numNeighborsDel = 0;
     for (int j = 0; j < numDeleted; j++) {
       int nid = deletedNodes[j];
       int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
@@ -207,21 +226,28 @@ void DeltaStep::runSSSP(int v) {
       int *heavy_weights = dg->get_heavy_weights(nid);
 
       for (int k = 0; k < num_heavy_neighbors; k++) {
-        neighborNodes[numNeighbors] = heavy_neighbors[k];
-        neighborNodeDists[numNeighbors] = heavy_weights[k] + tent[nid];
-        numNeighbors++;
+        neighborNodes[0][numNeighborsDel] = heavy_neighbors[k];
+        neighborNodeDists[0][numNeighborsDel] = heavy_weights[k] + tent[nid];
+        numNeighborsDel++;
       }
     }
 
     // Relax previously deferred edges
-    for (int j = 0; j < numNeighbors; j++) {
-      relax(neighborNodes[j], neighborNodeDists[j]);
+    for (int j = 0; j < numNeighborsDel; j++) {
+      relax(neighborNodes[0][j], neighborNodeDists[0][j]);
     }
 
     i++;
   }
 
   free(deletedNodes);
+
+
+  for (int i = 0 ; i < NUM_THREADS; i++) {
+    free(neighborNodes[i]);
+    free(neighborNodeDists[i]);
+  }
+
   free(neighborNodes);
   free(neighborNodeDists);
   free(timestamp);
