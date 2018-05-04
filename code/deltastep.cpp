@@ -5,7 +5,7 @@
 #include "cycletimer.h"
 
 #define TIMER_SIZE 8
-#define NUM_THREADS 12
+#define NUM_THREADS 8
 
 #define SET_START(arg) set_start(arg)
 #define SET_END(arg) set_end(arg)
@@ -168,34 +168,36 @@ void DeltaStep::runSSSP(int v) {
 #if OMP
 #pragma omp parallel num_threads(NUM_THREADS)
       {
-      int numNeighborsPrivate = 0;
+        int numNeighborsPrivate = 0;
+        int thread_id = omp_get_thread_num();
 
 #pragma omp for schedule(static)
-      for (int j = 0; j < bucketSize; j++) {
-        int nid = bucketStore[j];
-        if ((tent[nid] / delta) < i) {
-          continue;
-        }
-        if (timestamp[nid] == curTime) {
-          continue;
-        }
-        timestamp[nid] = curTime;
+        for (int j = 0; j < bucketSize; j++) {
+          int nid = bucketStore[j];
+          if ((tent[nid] / delta) < i) {
+            continue;
+          }
+          if (timestamp[nid] == curTime) {
+            continue;
+          }
+          timestamp[nid] = curTime;
 
-        int num_light_neighbors = dg->num_light_neighbor(nid);
-        int *light_neighbors = dg->get_light_neighbors(nid);
-        int *light_weights = dg->get_light_weights(nid);
+          int num_light_neighbors = dg->num_light_neighbor(nid);
+          int *light_neighbors = dg->get_light_neighbors(nid);
+          int *light_weights = dg->get_light_weights(nid);
 
-        // Setting Req
-        int array_spot;
-        for (int k = 0; k < num_light_neighbors; k++) {
-          neighborNodes[omp_get_thread_num()][numNeighbors] = light_neighbors[k];
-          neighborNodeDists[omp_get_thread_num()][numNeighbors] =
-              light_weights[k] + tent[nid];
-          numNeighbors++;
+          // Setting Req
+          int array_spot;
+          for (int k = 0; k < num_light_neighbors; k++) {
+
+            neighborNodes[thread_id][numNeighborsPrivate] = light_neighbors[k];
+            neighborNodeDists[thread_id][numNeighborsPrivate] =
+                light_weights[k] + tent[nid];
+            numNeighborsPrivate++;
+          }
+
         }
-
-      }
-      numNeighbors[omp_get_thread_num()] = numNeighborsPrivate;
+        numNeighbors[thread_id] = numNeighborsPrivate;
 
       }
 #endif
