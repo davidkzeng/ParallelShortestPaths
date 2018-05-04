@@ -3,6 +3,7 @@
 #include <string.h>
 #include <limits.h>
 #include <algorithm>
+#include <omp.h>
 
 #include "graph.h"
 #include "bucket.h"
