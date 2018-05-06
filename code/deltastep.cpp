@@ -116,12 +116,16 @@ DeltaStep::DeltaStep(Graph *g) {
 
   dg = new DeltaGraph(g, delta);
 
-  b = new BucketStore(delta, g->max_weight);
+  b = new BucketStore(delta, g->max_weight, g->nnode);
 
   nnode = g->nnode;
   nedge = g->nedge;
 
+#if OMP
+  tent = (std::atomic<int> *) calloc(nnode, sizeof(std::atomic<int>));
+#else
   tent = (int *) calloc(nnode, sizeof(int));
+#endif
 
   for (int i = 0; i < nnode; i++) {
     tent[i] = INF;
@@ -185,7 +189,7 @@ void DeltaStep::runSeqSSSP(int v) {
       }
       SET_END(0);
       numDeleted += bucketSize;
-      bucket->clear();
+      b->clearBucket(i);
       SET_START(1);
       for (int j = 0; j < numNeighbors; j++) {
         relax(neighborNodes[j], neighborNodeDists[j]);
@@ -223,12 +227,22 @@ void DeltaStep::runSeqSSSP(int v) {
 
 }
 
+inline bool update_min(std::atomic<int>& atom, const int val)
+{
+  int atom_val = atom;
+  while (atom_val > val) {
+    if (atom.compare_exchange_weak(atom_val, val, std::memory_order_relaxed))
+        return true;
+  }
+  return false;
+}
+
 void DeltaStep::runSSSP(int v) {
 #if !OMP
   runSeqSSSP(v);
   return;
 #endif
-
+#if OMP
   // Reusable list. Corresponds to S in psuedocode
   int *deletedNodes = (int *) calloc(nedge, sizeof(int));
 
@@ -258,7 +272,6 @@ void DeltaStep::runSSSP(int v) {
       UBA *bucket = b->getBucket(i);
       int bucketSize = bucket->size;
       int *bucketStore = bucket->store;
-#if OMP
       SET_START(0);
 #pragma omp parallel num_threads(NUM_THREADS)
       {
@@ -269,7 +282,7 @@ void DeltaStep::runSSSP(int v) {
         for (int j = 0; j < bucketSize; j++) {
           int nid = bucketStore[j];
 
-          if (timestamp[nid] == curTime || (tent[nid] / delta) < i) {
+          if (timestamp[nid] == curTime || b->bucket_index[nid] < i) {
             continue;
           }
 
@@ -291,17 +304,16 @@ void DeltaStep::runSSSP(int v) {
         }
         numNeighbors[thread_id] = numNeighborsPrivate;
       }
-#endif
-// This is very weird, maybe investigate further
-//#pragma omp simd
+      // This is very weird, maybe investigate further
+      //#pragma omp simd
       for (int j = 0; j < bucketSize; j++) {
         int nid = bucketStore[j];
         deletedNodes[numDeleted + j] = nid;
       }
       SET_END(0);
       numDeleted += bucketSize;
-      // B[i] = 0
-      bucket->clear();
+      // B[i] = {}
+      b->clearBucket(i);
       SET_START(1);
       // foreach (v,x) in Req do relax(v,x)
       for (int i = 0 ;i < NUM_THREADS; i++) {
@@ -312,8 +324,8 @@ void DeltaStep::runSSSP(int v) {
       SET_END(1);
     }
     // Sets "Req" to heavy edges
-#if OMP
     SET_START(2);
+    if (numDeleted > 100) {
 #pragma omp parallel num_threads(NUM_THREADS)
     {
       int numNeighborsDelPrivate = 0;
@@ -338,14 +350,37 @@ void DeltaStep::runSSSP(int v) {
     SET_END(2);
     SET_START(3);
     // Relax previously deferred edges
+#pragma omp parallel for schedule(static)
     for (int thread_id = 0; thread_id < NUM_THREADS; thread_id++) {
+      for (int j = 0; j < numNeighbors[thread_id]; j++) {
+        relax(neighborNodes[thread_id][j], neighborNodeDists[thread_id][j]);
+      }
+    }
+    } else {
+      int numNeighborsDelPrivate = 0;
+      int thread_id = 0;
+      for (int j = 0; j < numDeleted; j++) {
+        int nid = deletedNodes[j];
+        int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
+        int *heavy_neighbors = dg->get_heavy_neighbors(nid);
+        int *heavy_weights = dg->get_heavy_weights(nid);
+
+        for (int k = 0; k < num_heavy_neighbors; k++) {
+          neighborNodes[thread_id][numNeighborsDelPrivate] = heavy_neighbors[k];
+          neighborNodeDists[thread_id][numNeighborsDelPrivate] = heavy_weights[k] + tent[nid];
+          numNeighborsDelPrivate++;
+        }
+      }
+
+      numNeighbors[thread_id] = numNeighborsDelPrivate;
+      SET_END(2);
+      SET_START(3);
       for (int j = 0; j < numNeighbors[thread_id]; j++) {
         relax(neighborNodes[thread_id][j], neighborNodeDists[thread_id][j]);
       }
     }
     SET_END(3);
     i++;
-#endif
   }
   free(deletedNodes);
 
@@ -359,22 +394,31 @@ void DeltaStep::runSSSP(int v) {
   free(neighborNodeDists);
   free(timestamp);
   printf("%.4f %.4f %.4f %.4f\n", totalTime[0], totalTime[1], totalTime[2], totalTime[3]);
+#endif
 }
 
 void DeltaStep::relax(int v, int new_tent) {
+#if OMP
   // Shorter path to v?
-  if (new_tent < tent[v]) {
+  if (update_min(tent[v], new_tent)) {
     // Insert into new bucket
     int new_bucket = new_tent / delta;
     b->insert(new_bucket, v);
-    tent[v] = new_tent;
   }
+#else
+  if (new_tent < tent[v]) {
+    tent[v] = new_tent;
+    int new_bucket = new_tent / delta;
+    b->insert(new_bucket, v);
+  }
+#endif
 }
 
 
 void DeltaStep::showDistances() {
   for (int i = 0; i < nnode; i++) {
-    printf("Min distance from src 0 to dest %d is: %d\n", i, tent[i]);
+    int val = tent[i];
+    printf("Min distance from src 0 to dest %d is: %d\n", i, val);
   }
 }
 

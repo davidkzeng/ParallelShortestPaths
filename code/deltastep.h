@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <algorithm>
 #include <omp.h>
+#include <atomic>
 
 #include "graph.h"
 #include "bucket.h"
@@ -53,7 +54,11 @@ class DeltaStep {
   int delta;
 
   public:
-    int *tent; // Will contain distances after calling runSSSP
+#if OMP
+    std::atomic<int> *tent; // Will contain distances after calling runSSSP
+#else
+    int *tent;
+#endif
     DeltaStep(Graph *g);
     ~DeltaStep();
 

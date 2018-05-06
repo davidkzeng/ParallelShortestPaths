@@ -29,8 +29,10 @@ class BucketStore {
   std::vector<UBA*> buckets;
 
   public:
-    BucketStore(int delta, int max);
+    BucketStore(int delta, int max, int nnode);
     ~BucketStore();
+
+    int *bucket_index;
 
     void insert(int index, int v);
     void clearBucket(int index);

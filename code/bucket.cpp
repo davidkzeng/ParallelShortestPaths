@@ -1,7 +1,7 @@
 #include "bucket.h"
 
 UBA::UBA(int init_size) {
-  int min_size = init_size < 10 ? 10 : init_size;
+  int min_size = init_size < 1000000 ? 1000000 : init_size;
 
   store = (int *) calloc(min_size, sizeof(int));
   cap = min_size;
@@ -27,19 +27,18 @@ void UBA::resize() {
 }
 
 void UBA::insert(int v) {
-  if (size >= cap) {
-    resize();
-  }
+  int val;
 
-  store[size] = v;
-  size++;
+#pragma omp atomic capture
+  val = size++;
+  store[val] = v;
 }
 
 void UBA::clear() {
   size = 0;
 }
 
-BucketStore::BucketStore(int delta, int max) {
+BucketStore::BucketStore(int delta, int max, int nnode) {
   this->delta = delta;
   this->max_edge_weight = max;
 
@@ -48,6 +47,12 @@ BucketStore::BucketStore(int delta, int max) {
   for (int i = 0; i < num_buckets; i++) {
     buckets.push_back(new UBA(10));
   }
+
+  bucket_index = (int *) calloc(nnode, sizeof(int));
+  for (int i = 0; i < nnode; i++) {
+    bucket_index[i] = -1;
+  }
+
 }
 
 BucketStore::~BucketStore() {
@@ -55,13 +60,23 @@ BucketStore::~BucketStore() {
     delete buckets[i];
   }
   buckets.clear();
+
+  free(bucket_index);
 }
 
 void BucketStore::insert(int i, int v) {
-  buckets[i % num_buckets]->insert(v);
+  if (bucket_index[v] < 0 || bucket_index[v] > i) {
+    bucket_index[v] = i;
+    buckets[i % num_buckets]->insert(v);
+  }
 }
 
 void BucketStore::clearBucket(int i) {
+  UBA *bucket = buckets[i % num_buckets];
+  for (int j = 0; j < bucket->size; j++) {
+    bucket_index[bucket->store[j]] = -1;
+  }
+
   buckets[i % num_buckets]->clear();
 }
 
