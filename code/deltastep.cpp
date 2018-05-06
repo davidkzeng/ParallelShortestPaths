@@ -111,7 +111,7 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  delta = 15;
+  delta = 5;
   //delta = g->max_weight; // Temporary
 
   dg = new DeltaGraph(g, delta);

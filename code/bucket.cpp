@@ -70,7 +70,6 @@ void BucketStore::insert(int i, int v) {
 }
 
 void BucketStore::clearBucket(int i) {
-  UBA *bucket = buckets[i % num_buckets];
   buckets[i % num_buckets]->clear();
 }
 
