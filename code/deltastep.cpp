@@ -5,7 +5,7 @@
 #include "cycletimer.h"
 
 #define TIMER_SIZE 8
-#define NUM_THREADS 8
+#define NUM_THREADS 16
 
 #define SET_START(arg) set_start(arg)
 #define SET_END(arg) set_end(arg)
@@ -111,7 +111,7 @@ int* DeltaGraph::get_heavy_weights(int node_id) {
 DeltaStep::DeltaStep(Graph *g) {
   this->g = g;
 
-  delta = 15;
+  delta = 5;
   //delta = g->max_weight; // Temporary
 
   dg = new DeltaGraph(g, delta);
@@ -245,6 +245,21 @@ void DeltaStep::runSSSP(int v) {
     neighborNodeDists[i] = (int*) calloc(nedge,sizeof(int));
   }
 
+
+  int ***neighborNodesPT = (int ***) calloc(NUM_THREADS, sizeof(int**));
+  int ***neighborNodeDistsPT = (int ***) calloc(NUM_THREADS, sizeof(int**));
+  int **numNeighborsPT = (int **) calloc (NUM_THREADS, sizeof(int*));
+
+  for (int i = 0 ; i < NUM_THREADS; i++) {
+    neighborNodesPT[i] = (int **) calloc (NUM_THREADS, sizeof(int*));
+    neighborNodeDistsPT[i] = (int **) calloc (NUM_THREADS, sizeof(int*));
+    numNeighborsPT[i] = (int *) calloc (NUM_THREADS, sizeof(int));
+    for (int j = 0 ; j < NUM_THREADS; j++){
+      neighborNodesPT[i][j] = (int*) calloc(nedge, sizeof(int));
+      neighborNodeDistsPT[i][j] = (int *) calloc (nedge, sizeof(int));
+    }
+  }
+
   int *timestamp = (int *) calloc(nnode, sizeof(int));
   int curTime = 0;
 
@@ -304,9 +319,9 @@ void DeltaStep::runSSSP(int v) {
       bucket->clear();
       SET_START(1);
       // foreach (v,x) in Req do relax(v,x)
-      for (int i = 0 ;i < NUM_THREADS; i++) {
-        for (int j = 0; j < numNeighbors[i]; j++) {
-          relax(neighborNodes[i][j], neighborNodeDists[i][j]);
+      for (int k = 0 ;k < NUM_THREADS; k++) {
+        for (int j = 0; j < numNeighbors[k]; j++) {
+          relax(neighborNodes[k][j], neighborNodeDists[k][j]);
         }
       }
       SET_END(1);
@@ -314,35 +329,70 @@ void DeltaStep::runSSSP(int v) {
     // Sets "Req" to heavy edges
 #if OMP
     SET_START(2);
-#pragma omp parallel num_threads(NUM_THREADS)
+    int nthreads = numDeleted < 100 ?  1 : NUM_THREADS;
+    //int nthreads = NUM_THREADS;
+#pragma omp parallel num_threads(nthreads)
     {
-      int numNeighborsDelPrivate = 0;
+      //int numNeighborsDelPrivate = 0;
+      int numNeighborDelPrivatePT[NUM_THREADS] = {};
       int thread_id = omp_get_thread_num();
 
 #pragma omp for schedule(static)
       for (int j = 0; j < numDeleted; j++) {
         int nid = deletedNodes[j];
+        int tent_t = tent[nid];
         int num_heavy_neighbors = dg->num_heavy_neighbor(nid);
         int *heavy_neighbors = dg->get_heavy_neighbors(nid);
         int *heavy_weights = dg->get_heavy_weights(nid);
 
         for (int k = 0; k < num_heavy_neighbors; k++) {
-          neighborNodes[thread_id][numNeighborsDelPrivate] = heavy_neighbors[k];
-          neighborNodeDists[thread_id][numNeighborsDelPrivate] = heavy_weights[k] + tent[nid];
-          numNeighborsDelPrivate++;
+          int new_tent = heavy_weights[k] + tent_t;
+          int w_thread = ((new_tent / delta) % nthreads);
+          int index = numNeighborDelPrivatePT[w_thread];
+          //int index = numNeighborsPT[thread_id][w_thread];
+          neighborNodesPT[thread_id][w_thread][index] =
+              heavy_neighbors[k];
+          neighborNodeDistsPT[thread_id][w_thread][index] =
+              new_tent;
+          //numNeighborsPT[thread_id][w_thread]+= 1;
+          numNeighborDelPrivatePT[w_thread]+= 1;
         }
       }
 
-      numNeighbors[thread_id] = numNeighborsDelPrivate;
+      for (int j = 0 ; j < nthreads ; j++) {
+        numNeighborsPT[thread_id][j] = numNeighborDelPrivatePT[j];
+      }
+
+
+
+      //numNeighbors[thread_id] = numNeighborsDelPrivate;
     }
     SET_END(2);
     SET_START(3);
     // Relax previously deferred edges
-    for (int thread_id = 0; thread_id < NUM_THREADS; thread_id++) {
-      for (int j = 0; j < numNeighbors[thread_id]; j++) {
-        relax(neighborNodes[thread_id][j], neighborNodeDists[thread_id][j]);
+#pragma omp parallel for schedule(static) num_threads(nthreads)
+    for(int cur_thread = 0; cur_thread < nthreads; cur_thread++){
+      for (int thread_id = 0; thread_id < nthreads; thread_id++) {
+        for (int j = 0; j < numNeighborsPT[thread_id][cur_thread]; j++) {
+          int v = neighborNodesPT[thread_id][cur_thread][j];
+          int new_tent = neighborNodeDistsPT[thread_id][cur_thread][j];
+          //bool is_thread_resp = ( ((new_tent / delta) % nthreads) == cur_thread);
+          if (new_tent < tent[v]) {
+            relax(v, new_tent);
+          }
+        }
       }
     }
+
+    /*
+    int startIndex[NUM_THREADS];
+    startIndex[0] = 1;
+    for(int i = 1 ; i < NUM_THREADS; i++) {
+      startIndex[i] = startIndex[i-1] + numNeighbors[i-1];
+    }*/
+
+
+
     SET_END(3);
     i++;
 #endif
@@ -354,6 +404,19 @@ void DeltaStep::runSSSP(int v) {
     free(neighborNodes[i]);
     free(neighborNodeDists[i]);
   }
+
+  for (int j = 0 ; j < NUM_THREADS; j++) {
+    for (int k = 0; k < NUM_THREADS; k++){
+      free(neighborNodesPT[j][k]);
+      free(neighborNodeDistsPT[j][k]);
+    }
+    free(neighborNodesPT[j]);
+    free(neighborNodeDistsPT[j]);
+  }
+
+  free(neighborNodesPT);
+  free(neighborNodeDistsPT);
+
 
   free(neighborNodes);
   free(neighborNodeDists);

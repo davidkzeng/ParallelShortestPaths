@@ -1,7 +1,7 @@
 #include "bucket.h"
 
 UBA::UBA(int init_size) {
-  int min_size = init_size < 10 ? 10 : init_size;
+  int min_size = init_size < 1000000 ? 10000000 : init_size;
 
   store = (int *) calloc(min_size, sizeof(int));
   cap = min_size;
@@ -43,7 +43,7 @@ BucketStore::BucketStore(int delta, int max) {
   this->delta = delta;
   this->max_edge_weight = max;
 
-  num_buckets = (max_edge_weight / delta) + 1;
+  num_buckets = ((max_edge_weight / delta) + 1) *2 ;
   buckets.reserve(num_buckets);
   for (int i = 0; i < num_buckets; i++) {
     buckets.push_back(new UBA(10));

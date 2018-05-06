@@ -91,7 +91,7 @@ void benchmarkDelta(char* graphName, char* fileName) {
 
   for (int test_num = 0; test_num < 1; test_num++) {
     SET_START(0);
-    Dijkstra *d1 = new Dijkstra(weighted, 0);
+    Dijkstra *d1 = new Dijkstra(weighted, test_num);
     SET_END(0);
     // d1.showDistances();
 
@@ -99,7 +99,7 @@ void benchmarkDelta(char* graphName, char* fileName) {
     DeltaStep *d2 = new DeltaStep(weighted);
     SET_END(1);
     SET_START(2);
-    d2->runSSSP(0);
+    d2->runSSSP(test_num);
     SET_END(2);
 
     // d2.showDistances();
