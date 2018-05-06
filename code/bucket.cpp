@@ -52,11 +52,6 @@ BucketStore::BucketStore(int delta, int max, int nnode) {
     buckets.push_back(new UBA(10));
   }
 
-  bucket_index = (int *) calloc(nnode, sizeof(int));
-  for (int i = 0; i < nnode; i++) {
-    bucket_index[i] = -1;
-  }
-
 }
 
 BucketStore::~BucketStore() {
@@ -64,30 +59,18 @@ BucketStore::~BucketStore() {
     delete buckets[i];
   }
   buckets.clear();
-
-  free(bucket_index);
 }
 
 void BucketStore::atomicInsert(int i, int v) {
-  if (bucket_index[v] < 0 || bucket_index[v] > i) {
-    bucket_index[v] = i;
-    buckets[i % num_buckets]->atomicInsert(v);
-  }
+  buckets[i % num_buckets]->atomicInsert(v);
 }
 
 void BucketStore::insert(int i, int v) {
-  if (bucket_index[v] < 0 || bucket_index[v] > i) {
-    bucket_index[v] = i;
-    buckets[i % num_buckets]->insert(v);
-  }
+  buckets[i % num_buckets]->insert(v);
 }
 
 void BucketStore::clearBucket(int i) {
   UBA *bucket = buckets[i % num_buckets];
-  for (int j = 0; j < bucket->size; j++) {
-    bucket_index[bucket->store[j]] = -1;
-  }
-
   buckets[i % num_buckets]->clear();
 }
 

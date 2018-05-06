@@ -398,11 +398,19 @@ void DeltaStep::runSSSP(int v) {
 }
 
 void DeltaStep::relax(int v, int new_tent) {
+#if OMP
+  if (update_min(tent[v], new_tent)) {
+    // Insert into new bucket
+    int new_bucket = new_tent / delta;
+    b->insert(new_bucket, v);
+  }
+#else
   if (new_tent < tent[v]) {
     tent[v] = new_tent;
     int new_bucket = new_tent / delta;
     b->insert(new_bucket, v);
   }
+#endif
 }
 
 void DeltaStep::relaxAtomic(int v, int new_tent) {

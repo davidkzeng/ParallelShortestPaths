@@ -33,8 +33,6 @@ class BucketStore {
     BucketStore(int delta, int max, int nnode);
     ~BucketStore();
 
-    int *bucket_index;
-
     void insert(int index, int v);
     void atomicInsert(int index, int v);
     void clearBucket(int index);
