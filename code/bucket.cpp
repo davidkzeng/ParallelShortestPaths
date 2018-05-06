@@ -27,6 +27,10 @@ void UBA::resize() {
 }
 
 void UBA::insert(int v) {
+  store[size++] = v;
+}
+
+void UBA::atomicInsert(int v) {
   int val;
 
 #pragma omp atomic capture
@@ -62,6 +66,13 @@ BucketStore::~BucketStore() {
   buckets.clear();
 
   free(bucket_index);
+}
+
+void BucketStore::atomicInsert(int i, int v) {
+  if (bucket_index[v] < 0 || bucket_index[v] > i) {
+    bucket_index[v] = i;
+    buckets[i % num_buckets]->atomicInsert(v);
+  }
 }
 
 void BucketStore::insert(int i, int v) {

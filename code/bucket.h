@@ -15,6 +15,7 @@ class UBA {
 
     UBA(int init_size);
     ~UBA();
+    void atomicInsert(int v);
     void insert(int v);
     void clear();
 
@@ -35,6 +36,7 @@ class BucketStore {
     int *bucket_index;
 
     void insert(int index, int v);
+    void atomicInsert(int index, int v);
     void clearBucket(int index);
     bool isBucketEmpty(int index);
     bool isEmpty();

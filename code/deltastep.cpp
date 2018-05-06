@@ -5,7 +5,7 @@
 #include "cycletimer.h"
 
 #define TIMER_SIZE 8
-#define NUM_THREADS 8
+#define NUM_THREADS 16
 
 #define SET_START(arg) set_start(arg)
 #define SET_END(arg) set_end(arg)
@@ -282,7 +282,7 @@ void DeltaStep::runSSSP(int v) {
         for (int j = 0; j < bucketSize; j++) {
           int nid = bucketStore[j];
 
-          if (timestamp[nid] == curTime || b->bucket_index[nid] < i) {
+          if (timestamp[nid] == curTime || (tent[nid] / delta) < i) {
             continue;
           }
 
@@ -316,7 +316,7 @@ void DeltaStep::runSSSP(int v) {
       b->clearBucket(i);
       SET_START(1);
       // foreach (v,x) in Req do relax(v,x)
-      for (int i = 0 ;i < NUM_THREADS; i++) {
+      for (int i = 0; i < NUM_THREADS; i++) {
         for (int j = 0; j < numNeighbors[i]; j++) {
           relax(neighborNodes[i][j], neighborNodeDists[i][j]);
         }
@@ -353,7 +353,7 @@ void DeltaStep::runSSSP(int v) {
 #pragma omp parallel for schedule(static)
     for (int thread_id = 0; thread_id < NUM_THREADS; thread_id++) {
       for (int j = 0; j < numNeighbors[thread_id]; j++) {
-        relax(neighborNodes[thread_id][j], neighborNodeDists[thread_id][j]);
+        relaxAtomic(neighborNodes[thread_id][j], neighborNodeDists[thread_id][j]);
       }
     }
     } else {
@@ -398,18 +398,20 @@ void DeltaStep::runSSSP(int v) {
 }
 
 void DeltaStep::relax(int v, int new_tent) {
+  if (new_tent < tent[v]) {
+    tent[v] = new_tent;
+    int new_bucket = new_tent / delta;
+    b->insert(new_bucket, v);
+  }
+}
+
+void DeltaStep::relaxAtomic(int v, int new_tent) {
 #if OMP
   // Shorter path to v?
   if (update_min(tent[v], new_tent)) {
     // Insert into new bucket
     int new_bucket = new_tent / delta;
-    b->insert(new_bucket, v);
-  }
-#else
-  if (new_tent < tent[v]) {
-    tent[v] = new_tent;
-    int new_bucket = new_tent / delta;
-    b->insert(new_bucket, v);
+    b->atomicInsert(new_bucket, v);
   }
 #endif
 }
