@@ -127,6 +127,7 @@ DeltaStep::DeltaStep(Graph *g) {
   tent = (int *) calloc(nnode, sizeof(int));
 #endif
 
+#pragma omp parallel for num_threads(NUM_THREADS)
   for (int i = 0; i < nnode; i++) {
     tent[i] = INF;
   }
