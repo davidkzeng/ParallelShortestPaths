@@ -233,7 +233,8 @@ void DeltaStep::runSeqSSSP(int v) {
 
 inline bool update_min(std::atomic<int>& atom, const int val)
 {
-  int atom_val = atom;
+  int atom_val;
+  atom_val = atom.load(std::memory_order_relaxed);
   while (atom_val > val) {
     if (atom.compare_exchange_weak(atom_val, val, std::memory_order_relaxed))
         return true;
