@@ -368,6 +368,23 @@ void DeltaStep::runSSSP(int v) {
       //numNeighbors[thread_id] = numNeighborsDelPrivate;
     }
     SET_END(2);
+
+    // Work load imbalance code
+    int tempNum[NUM_THREADS] = {};
+    int cur_threadi;
+    int inner_thread;
+    for (cur_threadi = 0; cur_threadi < nthreads; cur_threadi++) {
+      for (inner_thread = 0; inner_thread < nthreads; inner_thread++) {
+        tempNum[cur_threadi] += numNeighborsPT[inner_thread][cur_threadi];
+      }
+    }
+
+    printf("Number of nodes per thread: ");
+    for (cur_threadi = 0; cur_threadi < nthreads; cur_threadi++) {
+      printf("%d:%d  ", cur_threadi, tempNum[cur_threadi]);
+    }
+    printf("\n");
+
     SET_START(3);
     // Relax previously deferred edges
 #pragma omp parallel for schedule(static) num_threads(nthreads)
