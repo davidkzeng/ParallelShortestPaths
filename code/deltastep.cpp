@@ -41,7 +41,7 @@ DeltaGraph::DeltaGraph(Graph *g, int delta) {
   light_neighbor_end = (int *) calloc(nnode, sizeof(int));
   heavy_neighbor_end = (int *) calloc(nnode, sizeof(int));
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static) num_threads(NUM_THREADS)
   for (int i = 0; i < nnode; i++) {
     int *neighbors = g->get_neighbors(i);
     int *weights = g->get_weights(i);
