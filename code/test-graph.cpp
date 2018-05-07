@@ -163,19 +163,37 @@ int main(){
   query_print(sp_u25600, 0, 25599);
   */
   //Graph *weighted = create_graph("/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon_w.gph");
-  benchmarkDelta("Wiki Topcats","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/wiki-topcats_w.gph");
-  benchmarkDelta("Wiki Topcats Geometric Weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/wiki-topcats_w_geom.gph");
 
-  benchmarkDelta("Amazon","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon_w.gph");
-  benchmarkDelta("Amazon Geometric weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon0302_w_geom.gph");
-  benchmarkDelta("Gowalla","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/loc-gowalla_edges_w.gph");
-  benchmarkDelta("Gowalla Geometric weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/loc-gowalla_edges_w_geom.gph");
-  benchmarkDelta("Ring 200000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_w_unif.gph");
-  benchmarkDelta("Ring 200000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_w_geom.gph");
-  benchmarkDelta("Random 200000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/random_w_unif.gph");
-  benchmarkDelta("Random 200000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/random_w_geom.gph");
-  benchmarkDelta("Ring 10000000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_big_w_unif.gph");
-  //benchmarkDelta("Ring 10000000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_big_w_geom.gph");
+  bool onAFS = false;
+  if (onAFS) {
+    benchmarkDelta("Wiki Topcats","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/wiki-topcats_w.gph");
+    benchmarkDelta("Wiki Topcats Geometric Weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/wiki-topcats_w_geom.gph");
+
+    benchmarkDelta("Amazon","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon_w.gph");
+    benchmarkDelta("Amazon Geometric weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon0302_w_geom.gph");
+    benchmarkDelta("Gowalla","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/loc-gowalla_edges_w.gph");
+    benchmarkDelta("Gowalla Geometric weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/loc-gowalla_edges_w_geom.gph");
+    benchmarkDelta("Ring 200000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_w_unif.gph");
+    benchmarkDelta("Ring 200000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_w_geom.gph");
+    benchmarkDelta("Random 200000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/random_w_unif.gph");
+    benchmarkDelta("Random 200000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/random_w_geom.gph");
+    benchmarkDelta("Ring 10000000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_big_w_unif.gph");
+    //benchmarkDelta("Ring 10000000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_big_w_geom.gph");
+  } else {
+    benchmarkDelta("Wiki Topcats","data/wiki-topcats_w.gph");
+    benchmarkDelta("Wiki Topcats geometric Weights","data/wiki-topcats_w_geom.gph");
+
+    //benchmarkDelta("Amazon","data/amazon_w.gph");
+    //benchmarkDelta("Amazon geometric weights","data/amazon0302_w_geom.gph");
+    //benchmarkDelta("Gowalla","data/loc-gowalla_edges_w.gph");
+    //benchmarkDelta("Gowalla geometric weights","data/loc-gowalla_edges_w_geom.gph");
+    //benchmarkDelta("Ring 200000 Uniform", "data/ring_w_unif.gph");
+    //benchmarkDelta("Ring 200000 geometric", "data/ring_w_geom.gph");
+    benchmarkDelta("Random 200000 Uniform", "data/random_w_unif.gph");
+    benchmarkDelta("Random 200000 geometric", "data/random_w_geom.gph");
+    benchmarkDelta("Ring 10000000 Uniform", "data/ring_big_w_unif.gph");
+    //benchmarkDelta("Ring 10000000 geometric", "data/ring_big_w_geom.gph");
+  }
 
   return 0;
 }
