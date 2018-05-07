@@ -224,6 +224,10 @@ void DeltaStep::runSeqSSSP(int v) {
   free(neighborNodeDists);
   free(timestamp);
   printf("%.4f %.4f %.4f %.4f\n", totalTime[0], totalTime[1], totalTime[2], totalTime[3]);
+  for (int k = 0 ; k < 4 ; k++) {
+    startTime[k] = 0;
+    totalTime[k] = 0;
+  }
 
 }
 
@@ -394,6 +398,10 @@ void DeltaStep::runSSSP(int v) {
   free(neighborNodeDists);
   free(timestamp);
   printf("%.4f %.4f %.4f %.4f\n", totalTime[0], totalTime[1], totalTime[2], totalTime[3]);
+  for(int k = 0; k < 4; k++) {
+    startTime[k] = 0;
+    totalTime[k] = 0;
+  }
 #endif
 }
 

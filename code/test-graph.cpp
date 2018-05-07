@@ -91,7 +91,7 @@ void benchmarkDelta(char* graphName, char* fileName) {
 
   for (int test_num = 0; test_num < 1; test_num++) {
     SET_START(0);
-    Dijkstra *d1 = new Dijkstra(weighted, 0);
+    Dijkstra *d1 = new Dijkstra(weighted, test_num);
     SET_END(0);
     // d1.showDistances();
 
@@ -99,7 +99,7 @@ void benchmarkDelta(char* graphName, char* fileName) {
     DeltaStep *d2 = new DeltaStep(weighted);
     SET_END(1);
     SET_START(2);
-    d2->runSSSP(0);
+    d2->runSSSP(test_num);
     SET_END(2);
 
     // d2.showDistances();
@@ -164,6 +164,18 @@ int main(){
   */
   //Graph *weighted = create_graph("/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon_w.gph");
   benchmarkDelta("Wiki Topcats","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/wiki-topcats_w.gph");
+  benchmarkDelta("Wiki Topcats Geometric Weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/wiki-topcats_w_geom.gph");
+
   benchmarkDelta("Amazon","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon_w.gph");
+  benchmarkDelta("Amazon Geometric weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/amazon0302_w_geom.gph");
+  benchmarkDelta("Gowalla","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/loc-gowalla_edges_w.gph");
+  benchmarkDelta("Gowalla Geometric weights","/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/loc-gowalla_edges_w_geom.gph");
+  benchmarkDelta("Ring 200000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_w_unif.gph");
+  benchmarkDelta("Ring 200000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_w_geom.gph");
+  benchmarkDelta("Random 200000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/random_w_unif.gph");
+  benchmarkDelta("Random 200000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/random_w_geom.gph");
+  benchmarkDelta("Ring 10000000 Uniform", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_big_w_unif.gph");
+  //benchmarkDelta("Ring 10000000 Geometric", "/afs/cs.cmu.edu/academic/class/15418-s18/data/vkang-data/ring_big_w_geom.gph");
+
   return 0;
 }
